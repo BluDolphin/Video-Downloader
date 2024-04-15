@@ -6,9 +6,9 @@ def audioOrVideo():
           "\n2) Video")
     
     if (temp:=input("Input: ")) == "1":
-        return "bestaudio/best" #Return True for audio
+        return "bestaudio[ext=mp4]/best" #Return True for audio
     elif temp == "2": 
-        return "bestvideo/best" #Return False for video
+        return "bestvideo[ext=mp4]/best" #Return False for video
     else:
         print("Invalid Input")
         audioOrVideo()
