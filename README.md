@@ -1,6 +1,8 @@
 # YouTube Downloader
 A very simple program to automatically download videos and playlists from youtube.
 
+The program is console based currently. If you want to run the source code instead of the exe then the "yt_dlp" package will need to be installed via pip.
+
 ## Info
 The video/playlist needs to be either public or unlisted, otherwise the program will not be able to retrieve the it from YT.
 
