@@ -1,12 +1,28 @@
 import yt_dlp
+import ffmpeg
+import os 
 
+def checkExtention(filename, intendedFormat): #Function for checking file extention and converting if needed
+    _, extension = os.path.splitext(filename) #Get the file extension from the downloaded file
+    
+    if extension != intendedFormat: #If the file is not in the intended format
+        print("Converting file to intended format...\n") 
+        output_file = f"{os.path.splitext(filename)[0]}{intendedFormat}" #Set the output file to the intended format
+        ffmpeg.input(filename).output(output_file).run(capture_stderr=True) #Convert the file to the intended format
+        
+        try:
+            os.remove(filename) #Deleting the file with the wrong extention
+        except OSError as e:
+            print(f"Error: {filename} : {e.strerror}") #Print error message if file cannot be deleted
+        
+            
 def Download():
     print("\n========= Youtube Downloader ========="
           "\nPlaylists need to be set to public or unlisted to be downloaded."
           "\nInput the URL of the playlist or single to download:")
     usrInput = input("\nURL: ").strip()
     
-    AorV = audioOrVideo()
+    AorV, intendedFormat = audioOrVideo()
     print("\nStarting download...")
     
     ydl_opts = {
@@ -15,29 +31,31 @@ def Download():
     'format': AorV,  # Choice of quality.
     'outtmpl': 'downloads/%(title)s.%(ext)s',  # Name the file the ID of the video
     'restrictfilenames': True,  # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
+    'no_warnings': True,  # Suppress all warning messages
     'nooverwrites': True,  # Prevent overwriting files.
     'continuedl': True,  # Force resume of partially downloaded files.
-    'progress_hooks': [my_hook],  # Hook function that gets called before the download starts
+    'progress_hooks': [lambda d: my_hook(d, intendedFormat)],  # Hook function that gets called before the download starts
     }
-    
+                
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([usrInput])
+
     except:
         print("\nError: Invalid URL")
         Download()
-
+        
 
 def audioOrVideo(): #Function for specifying audio or video download
     print("\nWhich do you want to download:"
-          "\n1) Audio (mp3)"
+          "\n1) Audio (m4a)"
           "\n2) Video (mp4)"
-          "\n3) Advanced (Custom Format)")
+          "\n3) Advanced (Custom Format and quality)")
     
     if (temp:=input("Input: ")) == "1": #If audio
-        return "bestaudio[ext=mp3]/best" #Return parameters for audio - mp3 and best quality
+        return "bestaudio[ext=m4a]/bestaudio", ".m4a" #Return parameters for audio - mp3 and best quality
     elif temp == "2": #If video
-        return "bestvideo[ext=mp4]+bestaudio[ext=mp4]/best" #Return parameters for video - mp4 and best quality
+        return "bestvideo[ext=mp4]+bestaudio[ext=mp4]/best", ".mp4" #Return parameters for video - mp4 and best quality
     elif temp == "3": #If custom format
         return customFormat() #Return custom format
     else:
@@ -53,35 +71,37 @@ def customFormat(): #Function for setting custom format
     #Player picks audio or video
     if (usrInput:=input("Input: ").strip()) == "1": #If audio
         while True: 
-            audioFormats = ["mp3", "m4a", "mp4", "wav", "aac", "flac", "ogg", "opus", "vorbis", "wma", "alac", "webm", "mkv", "mka"] #List of supported audio formats
+            audioFormats = ["mp3", "m4a", "mp4", "wav", "aac", "flac", "ogg", "wma", "webm", "mkv", "mka"] #List of supported audio formats
             print("\nWhich format do you want to download:" 
-                "\nSupported Formats are: ", audioFormats)
+                "\nSupported Formats are: ", audioFormats,
+                "\nNote: formats other thatn m4a and webm will take extra time to convert")
             
             temp=input("Input: ").strip() #Player picks format
             if temp in audioFormats: #If format is supported
-                fileFormat = f"ext={temp}" #Set format
+                fileFormat = temp #Set format
                 break
             else:
                 print("Invalid Input")
             
         custQuality = customQuality(usrInput) #Return custom quality
-        return f"{custQuality}audio[{fileFormat}]/best" #Return custom quality and format parameter
+        return f"{custQuality}audio[ext={fileFormat}]/bestaudio", f".{fileFormat}" #Return custom quality and format parameter
     
     if usrInput == "2": #If video
         while True: 
-            videoFormats = ["mp4", "flv", "ogg", "webm", "mkv", "avi", "mov"] #List of supported video formats
+            videoFormats = ["mp4", "mkv", "avi", "mov"] #List of supported video formats
             print("\nWhich format do you want to download:"
-                  "\nSupported Formats are: ", videoFormats)
+                  "\nSupported Formats are: ", videoFormats,
+                  "\nNote: formats other thatn mp4 and webm will take extra time to convert")
             
             temp=input("Input: ").strip() #Player picks format
             if temp in videoFormats: #If format is supported
-                fileFormat = f"ext={temp}" #Set format
+                fileFormat = temp #Set format
                 break
             else:
                 print("Invalid Input")
         
         custQuality, custResolution = customQuality(usrInput) #Return custom quality
-        return f"{custQuality}video{custResolution}[{fileFormat}]+bestaudio[ext=m4a]/best" #Return custom quality and format parameter
+        return f"{custQuality}video{custResolution}[ext={fileFormat}]+bestaudio[ext=m4a]/best", f".{fileFormat}"#Return custom quality and format parameter
 
 
 def customQuality(type): #Function for setting custom quality - Passed type of download (audio or video)
@@ -118,9 +138,10 @@ def customQuality(type): #Function for setting custom quality - Passed type of d
                 
     return quality, resolution #Return quality and resolution
 
-    
-def my_hook(d):
+def my_hook(d, intendedFormat):
     if d['status'] == 'finished':
         print("\nFinished downloading: ", d['filename'])
+        filename = d['filename']
+        checkExtention(filename, intendedFormat)
 
 Download()
