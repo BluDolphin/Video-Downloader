@@ -46,7 +46,6 @@ def Download():
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([usrInput])
-
     except:
         print("\nError: Invalid URL")
         Download()
@@ -58,7 +57,7 @@ def audioOrVideo(): #Function for specifying audio or video download
     print("\nWhich do you want to download:"
           "\n1) Audio (m4a)"
           "\n2) Video (mp4)"
-          "\n3) Advanced (Custom Format and quality)")
+          "\n3) Custom (Format and quality, needs ffmpeg installed)")
     
     if (temp:=input("Input: ")) == "1": #If audio
         return "bestaudio[ext=m4a]/bestaudio", ".m4a" #Return parameters for audio - mp3 and best quality
@@ -82,27 +81,34 @@ def customFormat(): #Function for setting custom format
             audioFormats = ["mp3", "m4a", "mp4", "wav", "aac", "flac", "ogg", "wma", "webm", "mkv", "mka"] #List of supported audio formats
             print("\nWhich format do you want to download:" 
                 "\nSupported Formats are: ", audioFormats,
-                "\nNote: formats other thatn m4a and webm will take extra time to convert")
+                "\nLeave Blank for defualt(m4a)"
+                "\nNote: formats other thatn m4a and webm will take extra time and require ffmpeg to be installed.")
             
-            temp=input("Input: ").strip() #Player picks format
-            if temp in audioFormats: #If format is supported
+            if (temp:=input("Input: ").strip()) == "": #If blank
+                fileFormat = "m4a"
+                break
+            elif temp in audioFormats: #If format is supported
                 fileFormat = temp #Set format
                 break
             else:
                 print("Invalid Input")
-            
+                
         custQuality = customQuality(usrInput) #Return custom quality
         return f"{custQuality}audio[ext={fileFormat}]/bestaudio", f".{fileFormat}" #Return custom quality and format parameter
     
-    if usrInput == "2": #If video
+    elif usrInput == "2": #If video
         while True: 
             videoFormats = ["mp4", "mkv", "avi", "mov"] #List of supported video formats
             print("\nWhich format do you want to download:"
                   "\nSupported Formats are: ", videoFormats,
-                  "\nNote: formats other thatn mp4 and webm will take extra time to convert")
+                  "\nLeave Blank for defualt(mp4)"
+                  "\nNote: formats other thatn mp4 and webm will take extra time to convert and require ffmpeg to be installed.")
             
             temp=input("Input: ").strip() #Player picks format
-            if temp in videoFormats: #If format is supported
+            if temp == "": #If blank
+                fileFormat = "mp4" #Set format
+                break
+            elif temp in videoFormats: #If format is supported
                 fileFormat = temp #Set format
                 break
             else:
@@ -110,6 +116,10 @@ def customFormat(): #Function for setting custom format
         
         custQuality, custResolution = customQuality(usrInput) #Return custom quality
         return f"{custQuality}video{custResolution}[ext={fileFormat}]+bestaudio[ext=m4a]/best", f".{fileFormat}"#Return custom quality and format parameter
+    
+    else:
+        print("Invalid Input")
+        customFormat()
 
 
 def customQuality(type): #Function for setting custom quality - Passed type of download (audio or video)
@@ -125,11 +135,11 @@ def customQuality(type): #Function for setting custom quality - Passed type of d
                 break
             else:
                 print("Invalid Input")
-                
+                   
     if type == "1": #If audio
         return quality #Return quality (resolution isnt needed for audio)
+     
                     
-    
     validResolutions = ["144", "240", "360", "480", "720", "1080", "1440", "2160", "4320"] #List of valid resolutions
     while True:
         temp = input("\nInput Resolution (e.g. 720, 1080)"
@@ -143,8 +153,9 @@ def customQuality(type): #Function for setting custom quality - Passed type of d
             break
         else:
             print("Invalid Input")
-                
+                   
     return quality, resolution #Return quality and resolution
+
 
 def my_hook(d, intendedFormat):
     if d['status'] == 'finished':
