@@ -5,6 +5,12 @@ import os
 def checkExtention(filename, intendedFormat): #Function for checking file extention and converting if needed
     _, extension = os.path.splitext(filename) #Get the file extension from the downloaded file
     
+    if extension == ".mp4": #if the file is mp4 (no need to convert)
+        #Because yt_dlp downlaods video then audio files separatlly
+        #The file extention is flagged as m4a (audio) since its always downloaded last
+        #this cuases a bug as after the hook is run its then combined 
+        return
+    
     if extension != intendedFormat: #If the file is not in the intended format
         print("Converting file to intended format...\n") 
         output_file = f"{os.path.splitext(filename)[0]}{intendedFormat}" #Set the output file to the intended format
@@ -44,7 +50,9 @@ def Download():
     except:
         print("\nError: Invalid URL")
         Download()
-        
+    
+    print("\nDownload Complete")
+    input("Press Enter to Exit...")
 
 def audioOrVideo(): #Function for specifying audio or video download
     print("\nWhich do you want to download:"
@@ -143,5 +151,6 @@ def my_hook(d, intendedFormat):
         print("\nFinished downloading: ", d['filename'])
         filename = d['filename']
         checkExtention(filename, intendedFormat)
+
 
 Download()
