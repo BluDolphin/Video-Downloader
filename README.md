@@ -6,7 +6,7 @@ The program is console based (currently), and allows for downloading both audio 
 # Dependencies
 To run the program you will need to have "ffmpeg" installed on your system, regardless if your using the source code or the exe.
 
-This can be done from the offical website https://ffmpeg.org/download.html
+This can be done from the offical website at https://ffmpeg.org/download.html
 
 To use the source code then you will need to download "yt_dlp" and "FFmpeg-python" packages via pip.
 
