@@ -1,5 +1,5 @@
-import yt_dlp
-import ffmpeg
+import yt_dlp #Needs to be pip installed
+import ffmpeg #Needs to be pip installed
 import os 
 
 def checkExtention(filename, intendedFormat): #Function for checking file extention and converting if needed
@@ -32,12 +32,12 @@ def Download():
     print("\nStarting download...")
     
     ydl_opts = {
+        'no_warnings': True,  # Suppress all warning messages
     'noplaylist': False,  # Download just the video, if the URL refers to a video and a playlist.
     'quiet': True,  # Do not print messages to stdout.
     'format': AorV,  # Choice of quality.
     'outtmpl': 'downloads/%(title)s.%(ext)s',  # Name the file the ID of the video
     'restrictfilenames': True,  # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
-    'no_warnings': True,  # Suppress all warning messages
     'nooverwrites': True,  # Prevent overwriting files.
     'continuedl': True,  # Force resume of partially downloaded files.
     'progress_hooks': [lambda d: my_hook(d, intendedFormat)],  # Hook function that gets called before the download starts
@@ -54,72 +54,72 @@ def Download():
     input("Press Enter to Exit...")
 
 def audioOrVideo(): #Function for specifying audio or video download
-    print("\nWhich do you want to download:"
-          "\n1) Audio (m4a)"
-          "\n2) Video (mp4)"
-          "\n3) Custom (Format and quality, needs ffmpeg installed)")
-    
-    if (temp:=input("Input: ")) == "1": #If audio
-        return "bestaudio[ext=m4a]/bestaudio", ".m4a" #Return parameters for audio - mp3 and best quality
-    elif temp == "2": #If video
-        return "bestvideo[ext=mp4]+bestaudio[ext=mp4]/best", ".mp4" #Return parameters for video - mp4 and best quality
-    elif temp == "3": #If custom format
-        return customFormat() #Return custom format
-    else:
-        print("Invalid Input")
-        audioOrVideo()
+    while True:
+        print("\nWhich do you want to download:"
+            "\n1) Audio (m4a)"
+            "\n2) Video (mp4)"
+            "\n3) Custom (Format and quality, needs ffmpeg installed)")
+        
+        if (temp:=input("Input: ")) == "1": #If audio
+            return "bestaudio[ext=m4a]/bestaudio", ".m4a" #Return parameters for audio - mp3 and best quality
+        elif temp == "2": #If video
+            return "bestvideo[ext=mp4]+bestaudio[ext=mp4]/best", ".mp4" #Return parameters for video - mp4 and best quality
+        elif temp == "3": #If custom format
+            return customFormat() #Return custom format
+        else:
+            print("Invalid Input")
     
         
 def customFormat(): #Function for setting custom format
-    print("\nDo you want to download"
-          "\n1) Audio"
-          "\n2) Video")
-    
-    #Player picks audio or video
-    if (usrInput:=input("Input: ").strip()) == "1": #If audio
-        while True: 
-            audioFormats = ["mp3", "m4a", "mp4", "wav", "aac", "flac", "ogg", "wma", "webm", "mkv", "mka"] #List of supported audio formats
-            print("\nWhich format do you want to download:" 
-                "\nSupported Formats are: ", audioFormats,
-                "\nLeave Blank for defualt(m4a)"
-                "\nNote: formats other thatn m4a and webm will take extra time and require ffmpeg to be installed.")
-            
-            if (temp:=input("Input: ").strip()) == "": #If blank
-                fileFormat = "m4a"
-                break
-            elif temp in audioFormats: #If format is supported
-                fileFormat = temp #Set format
-                break
-            else:
-                print("Invalid Input")
-                
-        custQuality = customQuality(usrInput) #Return custom quality
-        return f"{custQuality}audio[ext={fileFormat}]/bestaudio", f".{fileFormat}" #Return custom quality and format parameter
-    
-    elif usrInput == "2": #If video
-        while True: 
-            videoFormats = ["mp4", "mkv", "avi", "mov"] #List of supported video formats
-            print("\nWhich format do you want to download:"
-                  "\nSupported Formats are: ", videoFormats,
-                  "\nLeave Blank for defualt(mp4)"
-                  "\nNote: formats other thatn mp4 and webm will take extra time to convert and require ffmpeg to be installed.")
-            
-            temp=input("Input: ").strip() #Player picks format
-            if temp == "": #If blank
-                fileFormat = "mp4" #Set format
-                break
-            elif temp in videoFormats: #If format is supported
-                fileFormat = temp #Set format
-                break
-            else:
-                print("Invalid Input")
+    while True:
+        print("\nDo you want to download"
+            "\n1) Audio"
+            "\n2) Video")
         
-        custQuality, custResolution = customQuality(usrInput) #Return custom quality
-        return f"{custQuality}video{custResolution}[ext={fileFormat}]+bestaudio[ext=m4a]/best", f".{fileFormat}"#Return custom quality and format parameter
-    
-    else:
-        print("Invalid Input")
-        customFormat()
+        #Player picks audio or video
+        if (usrInput:=input("Input: ").strip()) == "1": #If audio
+            while True: 
+                audioFormats = ["mp3", "m4a", "mp4", "wav", "aac", "flac", "ogg", "wma", "webm", "mkv", "mka"] #List of supported audio formats
+                print("\nWhich format do you want to download:" 
+                    "\nSupported Formats are: ", audioFormats,
+                    "\nLeave Blank for defualt(m4a)"
+                    "\nNote: formats other thatn m4a and webm will take extra time and require ffmpeg to be installed.")
+                
+                if (temp:=input("Input: ").strip()) == "": #If blank
+                    fileFormat = "m4a"
+                    break
+                elif temp in audioFormats: #If format is supported
+                    fileFormat = temp #Set format
+                    break
+                else:
+                    print("Invalid Input")
+                    
+            custQuality = customQuality(usrInput) #Return custom quality
+            return f"{custQuality}audio[ext={fileFormat}]/bestaudio", f".{fileFormat}" #Return custom quality and format parameter
+        
+        elif usrInput == "2": #If video
+            while True: 
+                videoFormats = ["mp4", "mkv", "avi", "mov"] #List of supported video formats
+                print("\nWhich format do you want to download:"
+                    "\nSupported Formats are: ", videoFormats,
+                    "\nLeave Blank for defualt(mp4)"
+                    "\nNote: formats other thatn mp4 and webm will take extra time to convert and require ffmpeg to be installed.")
+                
+                temp=input("Input: ").strip() #Player picks format
+                if temp == "": #If blank
+                    fileFormat = "mp4" #Set format
+                    break
+                elif temp in videoFormats: #If format is supported
+                    fileFormat = temp #Set format
+                    break
+                else:
+                    print("Invalid Input")
+            
+            custQuality, custResolution = customQuality(usrInput) #Return custom quality
+            return f"{custQuality}video{custResolution}[ext={fileFormat}]+bestaudio[ext=m4a]/best", f".{fileFormat}"#Return custom quality and format parameter
+        
+        else:
+            print("Invalid Input")
 
 
 def customQuality(type): #Function for setting custom quality - Passed type of download (audio or video)
