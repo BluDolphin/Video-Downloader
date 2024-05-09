@@ -46,12 +46,12 @@ def Download():
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([usrInput])
+            print("\nDownload Complete")
+        input("Press Enter to Exit...")
     except:
         print("\nError: Invalid URL")
         Download()
     
-    print("\nDownload Complete")
-    input("Press Enter to Exit...")
 
 def audioOrVideo(): #Function for specifying audio or video download
     while True:
