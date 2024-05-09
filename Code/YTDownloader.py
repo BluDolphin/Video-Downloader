@@ -80,10 +80,10 @@ def customFormat(): #Function for setting custom format
         if (usrInput:=input("Input: ").strip()) == "1": #If audio
             while True: 
                 audioFormats = ["mp3", "m4a", "mp4", "wav", "aac", "flac", "ogg", "wma", "webm", "mkv", "mka"] #List of supported audio formats
-                print("\nWhich format do you want to download:" 
-                    "\nSupported Formats are: ", audioFormats,
-                    "\nLeave Blank for defualt(m4a)"
-                    "\nNote: formats other thatn m4a and webm will take extra time and require ffmpeg to be installed.")
+                print("\nNote: formats other thatn m4a and webm will take extra time and require ffmpeg to be installed."
+                      "\nWhich format do you want to download:" 
+                      "\nSupported Formats are: ", audioFormats,
+                      "\nLeave Blank for defualt(m4a)")
                 
                 if (temp:=input("Input: ").strip()) == "": #If blank
                     fileFormat = "m4a"
@@ -100,10 +100,10 @@ def customFormat(): #Function for setting custom format
         elif usrInput == "2": #If video
             while True: 
                 videoFormats = ["mp4", "mkv", "avi", "mov"] #List of supported video formats
-                print("\nWhich format do you want to download:"
-                    "\nSupported Formats are: ", videoFormats,
-                    "\nLeave Blank for defualt(mp4)"
-                    "\nNote: formats other thatn mp4 and webm will take extra time to convert and require ffmpeg to be installed.")
+                print("\nNote: formats other than m4a and webm will take extra time and require ffmpeg to be installed."
+                      "\nWhich format do you want to download:"
+                      "\nSupported Formats are: ", videoFormats,
+                      "\nLeave Blank for defualt(mp4)")
                 
                 temp=input("Input: ").strip() #Player picks format
                 if temp == "": #If blank
@@ -124,10 +124,14 @@ def customFormat(): #Function for setting custom format
 
 def customQuality(type): #Function for setting custom quality - Passed type of download (audio or video)
     while True: 
-            print("\nWhich quality do you want to download:"
-                "\n1) Best"
-                "\n2) Worst")
-            if (temp:=input("Input: ")) == "1": #If best quality
+            print("\nWhich quality do you want to download"
+                  "\nLeave Blank for defualt(Best):"
+                  "\n1) Best"
+                  "\n2) Worst")
+            if (temp:=input("Input: ")) == "": #If best quality
+                quality = "best" #Set quality
+                break
+            elif temp == "1": #If best quality
                 quality = "best" #Set quality
                 break
             elif temp == "2": #If worst quality
