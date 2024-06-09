@@ -1,10 +1,7 @@
 import flet as ft # GUI library
-import yt_dlp
-import requests # used to check if url is valid
-from bs4 import BeautifulSoup # used to get thumbnail from video URL
-import os
-from PIL import Image
-import re
+from bs4 import BeautifulSoup # Used to get thumbnail from video URL
+from PIL import Image # Used to resize the thumbnail
+import yt_dlp, os, requests # Video downloader library, os library, requests library
 
 pathLists = ["downloads", "downloads/temp"]
 for i in pathLists:
@@ -198,11 +195,20 @@ def download(page: ft.Page):
     
     def my_hook(d):
         nonlocal cancelDownload
+        if cancelDownload == True: # If the cancel button was pressed
+            raise Exception("Download Cancelled") # Raise an exception to stop the download
         
         if "filename" in d: #Get filename
-            filename = d['filename'].split("\\")[-1].split(".") # Delete file path and split the filename by "." 
-            filename = filename[0] + "." + filename[2] # Concatenate the filename and extension chunks
-        
+            fileName = d['filename'].split("\\")[-1].split(".") # Delete file path and split the filename by "." 
+            fileExtention = fileName[len(fileName)-1] # Get the file extension
+            
+            if len(fileName) > 2: # If the file name has more than 2 elements (downloading both video and audio)
+                fileName = fileName[:-2] # Delete the format and file extention
+            else: # If the file name has only 2 elements (downloading only audio)
+                fileName = fileName[:-1] # Delete the file extention
+            fileName = ".".join(fileName) # Join the list elements with "."
+            
+        # During Download
         if d['status'] == 'downloading':
             total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate') # Get total size of the download
             downloaded_bytes = d.get('downloaded_bytes', 0) # Get amount currently downloaded
@@ -211,37 +217,38 @@ def download(page: ft.Page):
                 completionDecimal = downloaded_bytes / total_bytes # Calculate the completion percentage as decimal
                 print(f" - download progress: {completionDecimal:.2f}")  # Display with 4 decimal places for precision
                 loadingBar.value = completionDecimal # Update the progress bar with the completion percentage
-                downloadingText.value = f"{filename} - {completionDecimal:.2%}" # Add a text widget to the page
-                page.update() # Update the progress bar with the completion percentage             
-                        
+                downloadingText.value = f"Downloading...   {completionDecimal:.2%}\n{fileName}.{fileExtention}" # Add a text widget to the page
+        
+        # When Download is Finished                
         elif d['status'] == 'finished': # If the download is finished
-            if filename.split(".")[1] == "mp4":
-                completedText.value = f"Successfully downloaded video - {filename.split(".")[0]}" 
+            if fileExtention == "mp4":
+                completedText.value = f"Downloaded video - {fileName}" # Display the completion message
             else:
-                completedText.value = f"Successfully downloaded audio - {filename.split(".")[0]}"
-        
-        if cancelDownload == True:
-            raise Exception("Download Cancelled")
-        
+                completedText.value = f"Downloaded - {fileName}" # Display the completion message
+            
+        page.update() # Update the page
         
     page.controls.clear()  # Clear the previous controls
-    value = "Starting Download..."
-    value2 = ""
-    
-    downloadingText = ft.Text(value, size=20) # Create a text widget to display the download status
-    loadingBar = ft.ProgressBar(width=800, height=10) # Create a progress bar widget
-    completedText = ft.Text(value2, size=20) # Create a text widget to display the download status
-    cancelButton = ft.ElevatedButton("Cancel", on_click=cancelButtonClick) # Create a button widget to cancel the download
     
     
-    page.add(ft.Column([downloadingText, loadingBar]))
-    page.add(completedText, cancelButton) # Add the button to the page
+    downloadingText = ft.Text((value := "Starting Download..."), size=20) # Create a text widget to display the download status
+    loadingBar = ft.ProgressBar(width=1000, height=10) # Create a progress bar widget
+    downloadInfo = ft.Column([downloadingText, loadingBar])
+    
+    completedText = ft.Text((value2 := ""), size=20) # Create a text widget to display the download status
+    
+    cancelButton = ft.ElevatedButton("Cancel", on_click=cancelButtonClick, disabled=False) # Create a button widget to cancel the download
+    finishedButton = ft.ElevatedButton("Finish", on_click=cancelButtonClick, disabled=True) # Create a button widget to cancel the download
+    buttonRow = ft.Row([cancelButton, finishedButton], alignment='center') # Create a Row widget to contain the buttons horizontally
+    
+    page.add(downloadInfo, completedText, buttonRow) # Add the button to the page
     
     
     if downloadVariables["audio"] == True:
         AorV = "bestaudio[ext=m4a]/bestaudio"
     else:
-        AorV = f"bestvideo[height<={downloadVariables['resolution']}][ext=mp4]+bestaudio[ext=m4a]/best"
+        resolution = downloadVariables["resolution"][:-1]
+        AorV = f"bestvideo[height<={resolution}][ext=mp4]+bestaudio[ext=m4a]/best"
 
     ydl_opts = {
         'no_warnings': True,  # Suppress all warning messages
@@ -258,14 +265,18 @@ def download(page: ft.Page):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
         try:
             ydl.download([videoURL])
-        except Exception as e:
+        except Exception as e: # if cancel button is pressed
             print(e)
-             
+            
+    # Change the download status to finished
+    downloadingText.value = "Download Finished"
+    downloadingText.size = 30
+    
+    loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
+    
+    # Enable the finished button and disable the cancel button
+    finishedButton.disabled = False
+    cancelButton.disabled = True
+    page.update()
 
-# BUG
-# When a file with the same name is going to be downloaded it doesnt download and is marked as complete even though it didnt download
-# If the last download is has the same name as a file already downloaded it will be marked as complete by yt_dlp yet theres no GUI prompt for it
-# Can check yt_dlp callouts with CLI version
-
-# Temp playlist - https://www.youtube.com/watch?v=_YfqYB-m1AM&list=PL4b6-i5pR3IKwG4X9svp4F8Kf9PuUmM3p
-ft.app(main)
+ft.app(main) 
