@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup # Used to get thumbnail from video URL
 from PIL import Image # Used to resize the thumbnail
 import yt_dlp, os, requests # Video downloader library, os library, requests library
 
-print("Starting Video Downloader...")
 pathLists = ["downloads", "downloads/temp"]
 for i in pathLists:
     if not os.path.exists(i):
@@ -164,7 +163,7 @@ def downloadSettings(page: ft.Page):
     ], alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER)  # Adjust alignment properties as needed
     
     # VIDEO RESOLUTION
-    resolutions = ["4k", "2k", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"] # Video resolutions
+    resolutions = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"] # Video resolutions
     options = [ft.dropdown.Option(resolution) for resolution in resolutions] # Create options for the dropdown
     resolutionSelect = ft.Dropdown( # Create the dropdown widget
         width=200, 
@@ -266,18 +265,21 @@ def download(page: ft.Page):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
         try:
             ydl.download([videoURL])
-        except Exception as e: # if cancel button is pressed
-            print(e)
+            # Change the download status to finished
+            downloadingText.value = "Download Finished"
+            downloadingText.size = 30
             
-    # Change the download status to finished
-    downloadingText.value = "Download Finished"
-    downloadingText.size = 30
-    
-    loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
-    
-    # Enable the finished button and disable the cancel button
-    finishedButton.disabled = False
-    cancelButton.disabled = True
-    page.update()
+            loadingBar.color = ft.colors.GREEN
+            loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
+            
+            # Enable the finished button and disable the cancel button
+            finishedButton.disabled = False
+            cancelButton.disabled = True
+            
+        except Exception as e: # if cancel button is pressed or an error occurs
+            downloadingText.value = f"Download Failed \n{e}" # Display the error message
+            loadingBar.color = ft.colors.RED # Set the progress bar color to red
+            loadingBar.value = 1  # Set the progress bar to 100% (used for when downloads are skipped)
 
+    page.update()        
 ft.app(main) 
