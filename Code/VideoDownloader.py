@@ -222,7 +222,7 @@ def download(page: ft.Page):
         # When Download is Finished                
         elif d['status'] == 'finished': # If the download is finished
             if fileExtention == "mp4":
-                completedText.value = f"Downloaded video - {fileName}" # Display the completion message
+                completedText.value = f"Downloaded (1/2) - {fileName}" # Display the completion message
             else:
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
             
