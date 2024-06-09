@@ -2,12 +2,17 @@
 A very simple program to automatically download Music, videos and playlists from a wide range of websites.
 
 # Dependencies
-To use the source code for the GUI program, the packages "yt_dlp", "pillow" and "flet" will need to be installed via pip
+To use the source code for the GUI program, the packages "yt_dlp", "pillow", "flet" will need to be installed via pip.
+
 This can be done by using `pip install yt_dlp pillow flet` in the terminal.
+
+To download videos ffmpeg will need to be downloaded.
+This can be done by running `pip install ffmpeg-python` or by installing it from the official website. For windows this can also be done by running the setup script or by moving the ffmpegio folder from _internal into `appdata/local`.
+
 
 ## Legacy program (CLI)
 The `yt-dlp` python package will need to be install via pip to use.
-To use custom formats the the custom formats then `ffmpeg-python` will also need to be installed.
+To use custom formats or to download videos then ffmpeg will also need to be installed.
 This can be done by using `pip install yt_dlp ffmpeg-python` in the terminal.
 
 # Info
@@ -19,3 +24,5 @@ After entering the URL you can chose to download the video(w/ audio) or only aud
 downloaded videos have their names copied from the source and are saved in a new folder called downloads in the current directory.
 
 As well as this thumbnails for the media are stored in a temp folder in "downloads/temp/". When the program runs it will automatically fush this.
+
+The setup script moves `_internal/ffmpegio` into `appdata/local` of the current user to allow for video downloads, this can be done manually by moving the folder. The setup script is for windows only.
