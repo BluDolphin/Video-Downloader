@@ -95,7 +95,7 @@ def mainPage(page: ft.Page):
 
             else: # If the URL is invalid
                 errorBanner(f"URL is invalid. Status code: {response.status_code}")
-        except requests.RequestException as e: # If an error occurred
+        except Exception as e:
             errorBanner(f"An error occurred: {e}")
                 
     def errorBanner(message): # Function to display an error banner
