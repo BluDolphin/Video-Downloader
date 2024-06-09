@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup # Used to get thumbnail from video URL
 from PIL import Image # Used to resize the thumbnail
 import yt_dlp, os, requests # Video downloader library, os library, requests library
 
+print("Starting Video Downloader...")
 pathLists = ["downloads", "downloads/temp"]
 for i in pathLists:
     if not os.path.exists(i):
@@ -16,7 +17,7 @@ for i in pathLists:
             # delete the folder and recreate it
             os.rmdir(i)
             os.makedirs(i)
-            
+
             
 tempPath = pathLists[1] + "/thumbnail-"
 videoURL = "" # Variable to store video URL
