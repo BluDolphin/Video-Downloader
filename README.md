@@ -7,7 +7,7 @@ To use the source code for the GUI program, the packages "yt_dlp", "pillow", "fl
 This can be done by using `pip install yt_dlp pillow flet` in the terminal.
 
 To download videos ffmpeg will need to be downloaded.
-This can be done by running `pip install ffmpeg-python` or by installing it from the official website. For windows this can also be done by running the setup script or by moving the ffmpegio folder from _internal into `appdata/local`.
+This can be done by running `pip install ffmpeg-python` or by installing it from the official website.
 
 
 ## Legacy program (CLI)
@@ -21,8 +21,6 @@ For example on youtube the it needs to be either public or unlisted, otherwise t
 
 After entering the URL you can chose to download the video(w/ audio) or only audio. Which are downloaded in mp4 and m4a respectively.
 
-downloaded videos have their names copied from the source and are saved in a new folder called downloads in the current directory.
+Downloaded videos have their names copied from the source and are saved in a new folder called downloads in the current directory.
 
-As well as this thumbnails for the media are stored in a temp folder in "downloads/temp/". When the program runs it will automatically fush this.
-
-The setup script moves `_internal/ffmpegio` into `appdata/local` of the current user to allow for video downloads, this can be done manually by moving the folder. The setup script is for windows only.
+As well as this thumbnails for the media are stored in a temp folder in "downloads/temp/". When the program runs it will automatically flush all previously downloaded thumbnails.
