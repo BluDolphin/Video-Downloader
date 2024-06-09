@@ -2,12 +2,12 @@
 A very simple program to automatically download Music, videos and playlists from a wide range of websites.
 
 # Dependencies
-## GUI
 To use the source code for the GUI program, the packages "yt_dlp", "pillow" and "flet" will need to be installed via pip
 This can be done by using `pip install yt_dlp pillow flet` in the terminal.
 
-## CLI
-To use the source code both "yt_dlp" and "FFmpeg-python" packages will need to be installed via pip.
+## Legacy program (CLI)
+The `yt-dlp` python package will need to be install via pip to use.
+To use custom formats the the custom formats then `ffmpeg-python` will also need to be installed.
 This can be done by using `pip install yt_dlp ffmpeg-python` in the terminal.
 
 # Info
