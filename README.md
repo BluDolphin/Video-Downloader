@@ -10,7 +10,7 @@ This can be done by using `pip install yt_dlp pillow flet` in the terminal.
 To use the source code both "yt_dlp" and "FFmpeg-python" packages will need to be installed via pip.
 This can be done by using `pip install yt_dlp ffmpeg-python` in the terminal.
 
-## Info
+# Info
 To be able to download the media will need to be public.
 For example on youtube the it needs to be either public or unlisted, otherwise the program will not be able to retrieve it.
 
