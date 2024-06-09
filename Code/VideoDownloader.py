@@ -280,6 +280,8 @@ def download(page: ft.Page):
             downloadingText.value = f"Download Failed \n{e}" # Display the error message
             loadingBar.color = ft.colors.RED # Set the progress bar color to red
             loadingBar.value = 1  # Set the progress bar to 100% (used for when downloads are skipped)
-
-    page.update()        
+            
+    page.update()   
+    
+     
 ft.app(main) 
