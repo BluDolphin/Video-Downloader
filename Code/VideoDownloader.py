@@ -199,7 +199,7 @@ def download(page: ft.Page):
             raise Exception("Download Cancelled") # Raise an exception to stop the download
         
         if "filename" in d: #Get filename
-            fileName = d['filename'].split("\\")[-1].split(".") # Delete file path and split the filename by "." 
+            fileName = d['filename'].split("/")[-1].split(".") # Delete file path and split the filename by "." 
             fileExtention = fileName[len(fileName)-1] # Get the file extension
             
             if len(fileName) > 2: # If the file name has more than 2 elements (downloading both video and audio)
