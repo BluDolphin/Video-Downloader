@@ -307,23 +307,22 @@ def download(page: ft.Page):
         
     if success == True: # if the program did not fail
         try:
-            # Get the file names of the video and audio
+            errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
+            
+            # Get file name and path of video and audio
             audioFile = f"downloads/{fileName}.m4a"
             videoFile = f"downloads/{fileName}.mp4"
             
-            errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
-            
-            # Load video
-            video = VideoFileClip(videoFile)
-            # Load audio
+            # Load video and audio
+            video = VideoFileClip(videoFile) # Load video
             audio = AudioFileClip(audioFile)
-            # Set audio to video
-            video_with_audio = video.set_audio(audio)
-            # Write the result to a file
-            video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac')
-            # Move audio file to temp
-            shutil.move(audioFile, os.getcwd + pathLists[1])
+            
+            video_with_audio = video.set_audio(audio) # Merge video and audio
+            video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
+
+            shutil.move(audioFile, os.getcwd + pathLists[1]) # Move audio file to temp 
                
+            
             # Change the download status to finished
             downloadingText.value = "Download Finished"
             downloadingText.size = 30
