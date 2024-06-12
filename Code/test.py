@@ -6,6 +6,10 @@ import yt_dlp, os, requests, shutil # Video downloader library, os library, requ
 
 """
 TODO 
+fix playlist download by adding a list where the file name is saved after finished downloading
+merge after finished downloading 
+BUG - 259
+
 Show convert percentage & appropriate text 
 integrate into fallback except 
 
@@ -14,7 +18,7 @@ integrate into fallback except
 
 
 # Create necessary folders if they don't exist
-pathLists = ["downloads", "downloads/temp"]
+pathLists = ["downloads", "downloads/temp/"]
 for i in pathLists:
     if not os.path.exists(i):
         os.makedirs(i)
@@ -250,8 +254,29 @@ def download(page: ft.Page):
         elif d['status'] == 'finished': # If the download is finished
             if fileExtention == "mp4":
                 completedText.value = f"Downloaded (1/2) - {fileName}" # Display the completion message
-            else:
+            elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
+                
+                # BUG BUG BUG BUG 
+                if altMode == True:
+                    errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
+           
+                    downloadingText.value = "Merging Audio and Video\nPlease wait..." # Change the download status to merging audio and video
+                    loadingBarContainer.content = ft.ProgressBar(width=1000, height=10, color=ft.colors.BLUE) # Change the color of the progress bar
+                    page.update() # Update the page
+                    
+                    # Load video and audio
+                    audio = AudioFileClip((audioFile := f"downloads/{fileName}.m4a"))
+                    video = VideoFileClip((videoFile := f"downloads/{fileName}.mp4"))
+                    
+                    video_with_audio = video.set_audio(audio) # Merge video and audio
+                    video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
+
+                        
+                    #get path to file 
+                    path = os.getcwd() + "/downloads/temp"
+                    shutil.move(audioFile, path) # Move audio file to temp 
+                    loadingBarContainer.content = loadingBar
             
         page.update() # Update the page
         
@@ -260,7 +285,8 @@ def download(page: ft.Page):
     
     downloadingText = ft.Text((value := "Starting Download..."), size=20) # Create a text widget to display the download status
     loadingBar = ft.ProgressBar(width=1000, height=10) # Create a progress bar widget
-    downloadInfo = ft.Column([downloadingText, loadingBar])
+    loadingBarContainer = ft.Container(content=loadingBar) # Create a container widget to hold the progress bar
+    downloadInfo = ft.Column([downloadingText, loadingBarContainer])
     
     completedText = ft.Text((value2 := ""), size=20) # Create a text widget to display the download status
     
@@ -279,65 +305,46 @@ def download(page: ft.Page):
 
     AorV = AorV.split("+") # Split the format into video and audio
     
-    success = True
-    for format in AorV: # For each format
-        ydl_opts = {
-                'no_warnings': True,  # Suppress all warning messages
-                'noplaylist': False,  # Download just the video, if the URL refers to a video and a playlist.
-                'quiet': True,  # Do not print messages to stdout.
-                'format': format,  # Choice of quality.
-                'outtmpl': 'downloads/%(title)s.%(ext)s',  # Name the file the ID of the video
-                'restrictfilenames': True,  # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
-                'nooverwrites': True,  # Prevent overwriting files.
-                'continuedl': True,  # Force resume of partially downloaded files.
-                'progress_hooks': [my_hook],  # Directly pass the function without lambda
-            }
+    ydl_opts = {
+        'no_warnings': True,  # Suppress all warning messages
+        'noplaylist': False,  # Download just the video, if the URL refers to a video and a playlist.
+        'quiet': True,  # Do not print messages to stdout.
+        'format': AorV,  # Choice of quality.
+        'outtmpl': 'downloads/%(title)s.%(ext)s',  # Name the file the ID of the video
+        'restrictfilenames': True,  # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
+        'nooverwrites': True,  # Prevent overwriting files.
+        'continuedl': True,  # Force resume of partially downloaded files.
+        'progress_hooks': [my_hook],  # Directly pass the function without lambda
+    }
     
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
-            try:
-                ydl.download([videoURL])
-                   
-            except Exception as e: # if cancel button is pressed or an error occurs
-                downloadingText.value = f"Download Failed \n{e}" # Display the error message
-                loadingBar.color = ft.colors.RED # Set the progress bar color to red
-                loadingBar.value = 1  # Set the progress bar to 100% (used for when downloads are skipped)
-                success = False
-                break
-        page.update() 
+    def finishedDownload():
+        # Change the download status to finished
+        downloadingText.value = "Download Finished"
+        downloadingText.size = 30
+          
+        loadingBarContainer.content = loadingBar # Change the color of the progress bar
+        loadingBar.color = ft.colors.GREEN
+        loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
         
-    if success == True: # if the program did not fail
-        try:
-            errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
-            
-            # Get file name and path of video and audio
-            audioFile = f"downloads/{fileName}.m4a"
-            videoFile = f"downloads/{fileName}.mp4"
-            
-            # Load video and audio
-            video = VideoFileClip(videoFile) # Load video
-            audio = AudioFileClip(audioFile)
-            
-            video_with_audio = video.set_audio(audio) # Merge video and audio
-            video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
+        # Enable the finished button and disable the cancel button
+        finishedButton.disabled = False
+        cancelButton.disabled = True
+    
 
-            shutil.move(audioFile, os.getcwd + pathLists[1]) # Move audio file to temp 
-               
-            
-            # Change the download status to finished
-            downloadingText.value = "Download Finished"
-            downloadingText.size = 30
-                
-            loadingBar.color = ft.colors.GREEN
-            loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
-            
-            # Enable the finished button and disable the cancel button
-            finishedButton.disabled = False
-            cancelButton.disabled = True
-        except:
-            downloadingText.value = "Failed to merge audio and video"
-            loadingBar.color = ft.colors.RED
-            loadingBar.value = 1
-            page.update()
+    # TRY BRACKER
+    try: # THIS WILL BE AN EXCEPT WHEN IMPLEMENTED
+        altMode = True
+        for format in AorV: # For each format
+            ydl_opts['format'] = format # Set the format to the current format
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
+                ydl.download([videoURL])
+        
+        finishedDownload() # Call the finished download function
+        
+    except Exception as e:
+        downloadingText.value = "Failed to merge audio and video"
+        loadingBar.color = ft.colors.RED
+        loadingBar.value = 1
    
     page.update() 
     
