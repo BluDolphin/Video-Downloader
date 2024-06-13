@@ -4,21 +4,9 @@ from PIL import Image # Used to resize the thumbnail
 from moviepy.editor import VideoFileClip, AudioFileClip # Used to merge video and audio
 import yt_dlp, os, requests, shutil # Video downloader library, os library, requests library
 
-"""
-TODO 
-fix playlist download by adding a list where the file name is saved after finished downloading
-merge after finished downloading 
-BUG - 259
-
-Show convert percentage & appropriate text 
-integrate into fallback except 
-
-"""
-
-
 
 # Create necessary folders if they don't exist
-pathLists = ["downloads", "downloads/temp/"]
+pathLists = ["downloads/", "downloads/temp/"]
 for i in pathLists:
     if not os.path.exists(i):
         os.makedirs(i)
@@ -222,9 +210,10 @@ def download(page: ft.Page):
         page.show_snack_bar(snackbar)
         
     fileName = "" # Variable to store the file name
+    audioFile = "" # Variable to store the audio file
     def my_hook(d):
-        nonlocal cancelDownload 
         nonlocal fileName
+        nonlocal audioFile
         
         if cancelDownload == True: # If the cancel button was pressed
             raise Exception("Download Cancelled") # Raise an exception to stop the download
@@ -257,10 +246,7 @@ def download(page: ft.Page):
             elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
                 
-                # BUG BUG BUG BUG 
-                if altMode == True:
-                    errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
-           
+                if altMode == True:           
                     downloadingText.value = "Merging Audio and Video\nPlease wait..." # Change the download status to merging audio and video
                     loadingBarContainer.content = ft.ProgressBar(width=1000, height=10, color=ft.colors.BLUE) # Change the color of the progress bar
                     page.update() # Update the page
@@ -272,10 +258,6 @@ def download(page: ft.Page):
                     video_with_audio = video.set_audio(audio) # Merge video and audio
                     video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
 
-                        
-                    #get path to file 
-                    path = os.getcwd() + "/downloads/temp"
-                    shutil.move(audioFile, path) # Move audio file to temp 
                     loadingBarContainer.content = loadingBar
             
         page.update() # Update the page
@@ -309,7 +291,7 @@ def download(page: ft.Page):
         'no_warnings': True,  # Suppress all warning messages
         'noplaylist': False,  # Download just the video, if the URL refers to a video and a playlist.
         'quiet': True,  # Do not print messages to stdout.
-        'format': AorV,  # Choice of quality.
+        'format': AorV[0],  # Choice of quality.
         'outtmpl': 'downloads/%(title)s.%(ext)s',  # Name the file the ID of the video
         'restrictfilenames': True,  # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
         'nooverwrites': True,  # Prevent overwriting files.
@@ -330,22 +312,41 @@ def download(page: ft.Page):
         finishedButton.disabled = False
         cancelButton.disabled = True
     
-
-    # TRY BRACKER
-    try: # THIS WILL BE AN EXCEPT WHEN IMPLEMENTED
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
+            ydl.download([videoURL])
+    
+    except yt_dlp.utils.DownloadError as e: # If ffmpeg not installed 
         altMode = True
-        for format in AorV: # For each format
-            ydl_opts['format'] = format # Set the format to the current format
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
-                ydl.download([videoURL])
+        errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
         
+        if "&list=" not in videoURL: # If the URL is not a playlist
+            for format in AorV:
+                ydl_opts['format'] = format
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([videoURL])
+            shutil.move(audioFile, os.getcwd() + "/" + pathLists[1]) # Move audio file to temp 
+
+        else:
+            # Get the playlist information
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                playlist_info = ydl.extract_info(videoURL, download=False)
+
+            for video in playlist_info['entries']: 
+                url = video['original_url']
+                for format in AorV:
+                    ydl_opts['format'] = format
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([url])
+                shutil.move(audioFile, os.getcwd() + "/" + pathLists[1]) # Move audio file to temp 
+            
         finishedDownload() # Call the finished download function
         
     except Exception as e:
-        downloadingText.value = "Failed to merge audio and video"
+        downloadingText.value = f"An error occurred: {e}" # Display the error message
+        loadingBarContainer.content = loadingBar
         loadingBar.color = ft.colors.RED
         loadingBar.value = 1
-   
     page.update() 
     
      

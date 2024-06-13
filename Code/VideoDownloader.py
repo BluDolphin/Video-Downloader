@@ -1,10 +1,24 @@
 import flet as ft # GUI library
 from bs4 import BeautifulSoup # Used to get thumbnail from video URL
 from PIL import Image # Used to resize the thumbnail
-import yt_dlp, os, requests # Video downloader library, os library, requests library
+from moviepy.editor import VideoFileClip, AudioFileClip # Used to merge video and audio
+import yt_dlp, os, requests, shutil # Video downloader library, os library, requests library
+
+"""
+TODO 
+fix playlist download by adding a list where the file name is saved after finished downloading
+merge after finished downloading 
+BUG - 259
+
+Show convert percentage & appropriate text 
+integrate into fallback except 
+
+"""
+
+
 
 # Create necessary folders if they don't exist
-pathLists = ["downloads", "downloads/temp"]
+pathLists = ["downloads/", "downloads/temp/"]
 for i in pathLists:
     if not os.path.exists(i):
         os.makedirs(i)
@@ -96,13 +110,19 @@ def mainPage(page: ft.Page):
 
             else: # If the URL is invalid
                 errorBanner(f"URL is invalid. Status code: {response.status_code}")
+        # invalid URL
+        except requests.exceptions.MissingSchema: # If the URL is invalid
+            errorBanner("Please enter a URL starting with 'http' or 'https'")
+        except TypeError: # If the URL is invalid
+            errorBanner("Please enter a valid URL.")
         except Exception as e:
             errorBanner(f"An error occurred: {e}")
                 
     def errorBanner(message): # Function to display an error banner
         snackbar = ft.SnackBar( # Show a snackbar with the error message
-            content=ft.Text(message, color=ft.colors.WHITE),
+            content=ft.Text(message, color=ft.colors.WHITE, size=20),
             bgcolor=ft.colors.RED
+            
         )
         page.show_snack_bar(snackbar)
         
@@ -193,9 +213,21 @@ def download(page: ft.Page):
         
         page.route = "/"  # Set the route back to the main page
         page.update()
-    
+        
+    def errorBanner(message): # Function to display an error banner
+        snackbar = ft.SnackBar( # Show a snackbar with the error message
+            content=ft.Text(message, color=ft.colors.WHITE, size=20),
+            bgcolor=ft.colors.RED
+        )
+        page.show_snack_bar(snackbar)
+        
+    fileName = "" # Variable to store the file name
+    audioFile = "" # Variable to store the audio file
     def my_hook(d):
-        nonlocal cancelDownload
+        nonlocal cancelDownload 
+        nonlocal fileName
+        nonlocal audioFile
+        
         if cancelDownload == True: # If the cancel button was pressed
             raise Exception("Download Cancelled") # Raise an exception to stop the download
         
@@ -224,8 +256,22 @@ def download(page: ft.Page):
         elif d['status'] == 'finished': # If the download is finished
             if fileExtention == "mp4":
                 completedText.value = f"Downloaded (1/2) - {fileName}" # Display the completion message
-            else:
+            elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
+                
+                if altMode == True:           
+                    downloadingText.value = "Merging Audio and Video\nPlease wait..." # Change the download status to merging audio and video
+                    loadingBarContainer.content = ft.ProgressBar(width=1000, height=10, color=ft.colors.BLUE) # Change the color of the progress bar
+                    page.update() # Update the page
+                    
+                    # Load video and audio
+                    audio = AudioFileClip((audioFile := f"downloads/{fileName}.m4a"))
+                    video = VideoFileClip((videoFile := f"downloads/{fileName}.mp4"))
+                    
+                    video_with_audio = video.set_audio(audio) # Merge video and audio
+                    video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
+
+                    loadingBarContainer.content = loadingBar
             
         page.update() # Update the page
         
@@ -234,7 +280,8 @@ def download(page: ft.Page):
     
     downloadingText = ft.Text((value := "Starting Download..."), size=20) # Create a text widget to display the download status
     loadingBar = ft.ProgressBar(width=1000, height=10) # Create a progress bar widget
-    downloadInfo = ft.Column([downloadingText, loadingBar])
+    loadingBarContainer = ft.Container(content=loadingBar) # Create a container widget to hold the progress bar
+    downloadInfo = ft.Column([downloadingText, loadingBarContainer])
     
     completedText = ft.Text((value2 := ""), size=20) # Create a text widget to display the download status
     
@@ -251,43 +298,68 @@ def download(page: ft.Page):
         resolution = downloadVariables["resolution"][:-1]
         AorV = f"bestvideo[height<={resolution}][ext=mp4]+bestaudio[ext=m4a]/best"
 
+    AorV = AorV.split("+") # Split the format into video and audio
+    
     ydl_opts = {
         'no_warnings': True,  # Suppress all warning messages
         'noplaylist': False,  # Download just the video, if the URL refers to a video and a playlist.
         'quiet': True,  # Do not print messages to stdout.
-        'format': AorV,  # Choice of quality.
+        'format': AorV[0],  # Choice of quality.
         'outtmpl': 'downloads/%(title)s.%(ext)s',  # Name the file the ID of the video
         'restrictfilenames': True,  # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
         'nooverwrites': True,  # Prevent overwriting files.
         'continuedl': True,  # Force resume of partially downloaded files.
         'progress_hooks': [my_hook],  # Directly pass the function without lambda
     }
-                
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
-        try:
+    
+    def finishedDownload():
+        # Change the download status to finished
+        downloadingText.value = "Download Finished"
+        downloadingText.size = 30
+          
+        loadingBarContainer.content = loadingBar # Change the color of the progress bar
+        loadingBar.color = ft.colors.GREEN
+        loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
+        
+        # Enable the finished button and disable the cancel button
+        finishedButton.disabled = False
+        cancelButton.disabled = True
+    
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([videoURL])
-            # Change the download status to finished
-            downloadingText.value = "Download Finished"
-            downloadingText.size = 30
-            
-            loadingBar.color = ft.colors.GREEN
-            loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
-            
-            # Enable the finished button and disable the cancel button
-            finishedButton.disabled = False
-            cancelButton.disabled = True
+        finishedDownload()
         
-        # TO TEST ----------------------------------------------------------------
-        except yt_dlp.utils.DownloadError as e: # If ffmpeg not installed 
-            print("TODO")
+    except yt_dlp.utils.DownloadError as e: # If ffmpeg not installed 
+        altMode = True
+        errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
         
-        # TO TEST -------------------------------------------------------------------    
-        except Exception as e: # if cancel button is pressed or an error occurs
-            downloadingText.value = f"Download Failed \n{e}" # Display the error message
-            loadingBar.color = ft.colors.RED # Set the progress bar color to red
-            loadingBar.value = 1  # Set the progress bar to 100% (used for when downloads are skipped)
-            
-    page.update()   
+        ydl_opts['playliststart'] = 1
+        ydl_opts['playlistend'] = 1
+        
+        while True:
+            try:
+                for format in AorV: # For each format in the format list
+                    ydl_opts['format'] = format
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([videoURL])
+                
+                shutil.move(audioFile, os.getcwd() + "/" + pathLists[1]) # Move audio file to temp
+                
+                ydl_opts['playliststart'] = ydl_opts['playliststart'] + 1
+                ydl_opts['playlistend'] = ydl_opts['playlistend'] + 1
+                
+            except: # If playlist is finished
+                break # Exit loop
+        
+        finishedDownload() # Call the finished download function
+        
+    except Exception as e:
+        downloadingText.value = f"An error occurred: {e}" # Display the error message
+        loadingBarContainer.content = loadingBar
+        loadingBar.color = ft.colors.RED
+        loadingBar.value = 1
+    page.update() 
     
      
 ft.app(main) 
