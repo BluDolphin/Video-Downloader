@@ -227,6 +227,7 @@ def download(page: ft.Page):
         nonlocal cancelDownload 
         nonlocal fileName
         nonlocal audioFile
+        nonlocal filesDownloaded
         
         if cancelDownload == True: # If the cancel button was pressed
             raise Exception("Download Cancelled") # Raise an exception to stop the download
@@ -240,7 +241,7 @@ def download(page: ft.Page):
             else: # If the file name has only 2 elements (downloading only audio)
                 fileName = fileName[:-1] # Delete the file extention
             fileName = ".".join(fileName) # Join the list elements with "."
-            
+        
         # During Download
         if d['status'] == 'downloading':
             total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate') # Get total size of the download
@@ -258,6 +259,7 @@ def download(page: ft.Page):
                 completedText.value = f"Downloaded (1/2) - {fileName}" # Display the completion message
             elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
+                page.update() # Update the page
                 
                 if altMode == True:           
                     downloadingText.value = "Merging Audio and Video\nPlease wait..." # Change the download status to merging audio and video
@@ -265,12 +267,13 @@ def download(page: ft.Page):
                     page.update() # Update the page
                     
                     # Load video and audio
-                    audio = AudioFileClip((audioFile := f"downloads/{fileName}.m4a"))
-                    video = VideoFileClip((videoFile := f"downloads/{fileName}.mp4"))
+                    audio = AudioFileClip((audioFile := f"{fileName}.m4a"))
+                    video = VideoFileClip((videoFile := f"{fileName}.mp4"))
                     
                     video_with_audio = video.set_audio(audio) # Merge video and audio
                     video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
 
+                    filesDownloaded.append(fileName) # Add the video file to the list of files downloaded
                     loadingBarContainer.content = loadingBar
             
         page.update() # Update the page
@@ -325,12 +328,16 @@ def download(page: ft.Page):
         finishedButton.disabled = False
         cancelButton.disabled = True
     
+    
+    altMode = False # Variable to store if the download is in alt mode
     try:
+        ydl_opts['format'] = f"{AorV[0]}+{AorV[1]}"
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([videoURL])
         finishedDownload()
-        
+    
     except yt_dlp.utils.DownloadError as e: # If ffmpeg not installed 
+        filesDownloaded = [] # List to store the files downloaded
         altMode = True
         errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
         
@@ -346,11 +353,14 @@ def download(page: ft.Page):
                 
                 shutil.move(audioFile, os.getcwd() + "/" + pathLists[1]) # Move audio file to temp
                 
+                if fileName in filesDownloaded: # If the file has already been downloaded
+                    break # Exit loop
+                
                 ydl_opts['playliststart'] = ydl_opts['playliststart'] + 1
                 ydl_opts['playlistend'] = ydl_opts['playlistend'] + 1
                 
-            except: # If playlist is finished
-                break # Exit loop
+            except Exception as e: # If playlist is finished
+                raise Exception# Exit loop
         
         finishedDownload() # Call the finished download function
         
