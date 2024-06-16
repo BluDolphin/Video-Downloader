@@ -328,10 +328,15 @@ def download(page: ft.Page):
         finishedButton.disabled = False
         cancelButton.disabled = True
     
-    
+    # Delete playliststart and playlistend from ydl_opts
+    if 'playliststart' in ydl_opts:
+        del ydl_opts['playliststart']
+        del ydl_opts['playlistend']
+
     altMode = False # Variable to store if the download is in alt mode
     try:
-        ydl_opts['format'] = f"{AorV[0]}+{AorV[1]}"
+        ydl_opts['format'] = AorV[0] if len(AorV) == 1 else f"{AorV[0]}+{AorV[1]}" # Set the format the format
+        
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([videoURL])
         finishedDownload()
