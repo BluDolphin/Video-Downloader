@@ -1,5 +1,9 @@
 # Video and Music Downloader
-A very simple program to automatically download Music, videos and playlists from a wide range of websites.
+A simple program to automatically download Music, videos and playlists from a wide range of websites. 
+
+When submitting a link you can choose to download the audio or video (w/audio). When downloading videos you can choose what resolution to download (NOTE - The program will try to download the highest resolution when the selected isn't avaliable)
+
+IMPORTANT - When downloading videos it's best to install FFmpeg onto your device as the program primaraly uses it to add the audio to the downloaded videos. There is a fallback incase it is not installed, however this is significantly slower especially when downloading bulk/long videos.
 
 # Dependencies
 To use the source code for the GUI program, the packages "yt_dlp", "pillow", "flet", "moviepy", and "bs4" will need to be installed via pip.
