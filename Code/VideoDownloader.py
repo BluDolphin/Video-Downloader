@@ -4,18 +4,6 @@ from PIL import Image # Used to resize the thumbnail
 from moviepy.editor import VideoFileClip, AudioFileClip # Used to merge video and audio
 import yt_dlp, os, requests, shutil # Video downloader library, os library, requests library
 
-"""
-TODO 
-fix playlist download by adding a list where the file name is saved after finished downloading
-merge after finished downloading 
-BUG - 259
-
-Show convert percentage & appropriate text 
-integrate into fallback except 
-
-"""
-
-
 
 # Create necessary folders if they don't exist
 pathLists = ["downloads/", "downloads/temp/"]
