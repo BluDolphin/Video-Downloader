@@ -258,8 +258,8 @@ def download(page: ft.Page):
                     audio = AudioFileClip((audioFile := f"{fileName}.m4a"))
                     video = VideoFileClip((videoFile := f"{fileName}.mp4"))
                     
-                    video_with_audio = video.set_audio(audio) # Merge video and audio
-                    video_with_audio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
+                    videoWithAudio = video.set_audio(audio) # Merge video and audio
+                    videoWithAudio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
 
                     filesDownloaded.append(fileName) # Add the video file to the list of files downloaded
                     loadingBarContainer.content = loadingBar
@@ -334,14 +334,14 @@ def download(page: ft.Page):
         altMode = True
         errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
         
-        ydl_opts['playliststart'] = 1
-        ydl_opts['playlistend'] = 1
+        ydl_opts['playliststart'] = 1 # Reset pointer 
+        ydl_opts['playlistend'] = 1 # Reset pointer
         
         while True:
             try:
                 for format in AorV: # For each format in the format list
-                    ydl_opts['format'] = format
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl_opts['format'] = format # Set download format
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl: # Download the video
                         ydl.download([videoURL])
                 
                 shutil.move(audioFile, os.getcwd() + "/" + pathLists[1]) # Move audio file to temp
@@ -349,8 +349,8 @@ def download(page: ft.Page):
                 if fileName in filesDownloaded: # If the file has already been downloaded
                     break # Exit loop
                 
-                ydl_opts['playliststart'] = ydl_opts['playliststart'] + 1
-                ydl_opts['playlistend'] = ydl_opts['playlistend'] + 1
+                ydl_opts['playliststart'] = ydl_opts['playliststart'] + 1 # Increment the playlist start
+                ydl_opts['playlistend'] = ydl_opts['playlistend'] + 1 # Increment the playlist end
                 
             except Exception as e: # If playlist is finished
                 raise Exception# Exit loop
