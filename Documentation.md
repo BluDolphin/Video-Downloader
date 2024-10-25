@@ -28,7 +28,16 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
 | Variable  | Type | Description | 
 | ----------| -----| ----------- | 
+| response | html | Used to check if the entered URL is valid and has a page attached |
+| soup | html | Parses the html code to find the video title |
+| img | image | The variable which is used to display the thumbnail |
+| mainText | flet text | Text field for the page |
 |  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+
 
 
 ### downloadSettings
