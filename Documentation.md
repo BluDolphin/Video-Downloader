@@ -1,4 +1,4 @@
-# DOCCUMENTATION
+# DOCUMENTATION
 
 ### Global Variables
 | Variable  | Type | Description | Line |
