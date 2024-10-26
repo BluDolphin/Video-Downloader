@@ -24,7 +24,7 @@ List of all variables sorted by where they're decalred
 | downloadVariables | dict | Stores settings for the download | 
 
 ### Page - mainPage 
-Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
+Gloal variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
 | Variable  | Type | Description | 
 | --------- | ---- | ----------- | 
@@ -37,7 +37,7 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
 
 ### Page - downloadSettings
-Global variables refrenced - downloadVariables
+Global variables modified - downloadVariables
 
 | Variable  | Type | Description | 
 | --------- | ---- | ----------- | 
@@ -54,6 +54,7 @@ Global variables refrenced - downloadVariables
 
 
 ### Page - download 
+Does not mofify any global variables 
 | Variable  | Type | Description | 
 | ----------| -----| ----------- | 
 | cancelDownload | bool | Used by the cancel download button to stop the download |
