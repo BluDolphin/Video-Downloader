@@ -37,6 +37,8 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
 
 ### Page - downloadSettings
+Global variables refrenced - downloadVariables
+
 | Variable  | Type | Description | 
 | --------- | ---- | ----------- | 
 | isChecked | bool | Used to enable and disable the download button if an option has been picked or not | 
@@ -45,7 +47,6 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 | audioSelect | flet checkbox | Checkbox to download only the audio |
 | videoAudioRow | flet row | Used to put the video and audio checkboxes in line horizontally |
 | resolutions | list | A list of posible resolutons (16:9) to be used for the video download |
-| 
 | resolutionOptions | flet dropdown options | Adds all resolutions into a format that can be used by a flet dropdown |
 | resolutionSelect | flet dropdown | Dropdown menu to select what video resolution to download (will defualt to highest if selected is not available) |
 | buttonRow | flet row | Used to put the "main menu" and "download" button on the same row |
@@ -77,6 +78,10 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 | AorV | str | Stores the download configuration string for the download (yt_dlp) |
 | resoluton | str | Temporaraly holds the resolution if downloading a video |
 | ydl_opts | dict | Holds the download configuration settings for yt_dlp |
+
+
+## Functions
+
 
 
 
