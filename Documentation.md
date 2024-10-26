@@ -23,7 +23,7 @@ List of all variables sorted by where they're decalred
 | thumbnailPath | str | The path to the saved thumbnail | 
 | downloadVariables | dict | Stores settings for the download | 
 
-### mainPage 
+### Page - mainPage 
 Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
 | Variable  | Type | Description | 
@@ -36,7 +36,7 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 | submitButton | flet button | The submit button |
 
 
-### downloadSettings
+### Page - downloadSettings
 | Variable  | Type | Description | 
 | --------- | ---- | ----------- | 
 | isChecked | bool | Used to enable and disable the download button if an option has been picked or not | 
@@ -52,7 +52,7 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 | downloadButton | flet Button | Button to confirm setting and begin download |
 
 
-### download 
+### Page - download 
 | Variable  | Type | Description | 
 | ----------| -----| ----------- | 
 | cancelDownload | bool | Used by the cancel download button to stop the download |
@@ -74,9 +74,10 @@ Gloal variables refrenced - videoURL, thumbnailURL, videoTitle, thumbnailPath
 | cancelButton | flet button | Button to cancel the download and return to the main menu |
 | finishedButton | flet button | Button that "unlocks" when the download is finished that returns to the main menu |
 | buttonRow | flet row | Holds the cancel button and finished button so they are horizontally aligned |
-| AorV | str | holds the download configuration string for the download (yt_dlp) |
-|  |  |  |
-|  |  |  |
+| AorV | str | Stores the download configuration string for the download (yt_dlp) |
+| resoluton | str | Temporaraly holds the resolution if downloading a video |
+| ydl_opts | dict | Holds the download configuration settings for yt_dlp |
+
 
 
 
