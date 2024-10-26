@@ -6,7 +6,7 @@ import yt_dlp, os, requests, shutil # Video downloader library, os library, requ
 
 
 # Create necessary folders if they don't exist
-pathLists = ["downloads/", "downloads/temp/"]
+pathLists = ["downloads/", "downloads/temp/"] # List of paths to create
 for i in pathLists:
     if not os.path.exists(i):
         os.makedirs(i)
@@ -20,11 +20,11 @@ for i in pathLists:
             os.rmdir(i)
             os.makedirs(i)
 
-            
-tempPath = pathLists[1] + "/thumbnail-"
+# Global variables          
 videoURL = "" # Variable to store video URL
 thumbnailURL = "" # Variable to store thumbnail URL
 videoTitle = "" # Variable to store video title
+thumbnailPath = "" # Variable to store thumbnail path
 downloadVariables = {"audio": False, "video": False, "resolution": ""}
 
 def main(page: ft.Page): # Main function
@@ -61,8 +61,8 @@ def main(page: ft.Page): # Main function
 def mainPage(page: ft.Page):
     def submitButtonClick(e): # Function for button press
         # Get video URL from the input field
-        global videoURL, thumbnailURL, tempPath, videoTitle
-        videoURL = URLInput.value
+        global videoURL, thumbnailURL, videoTitle, thumbnailPath
+        videoURL = URLInput.value # gets value from text box and assigns to videoURL
         
         # Check if the URL is valid and get the thumbnail
         try:
@@ -74,21 +74,21 @@ def mainPage(page: ft.Page):
                 videoTitle = soup.find('meta', property='og:title')['content']
                             
                 # Adds the temp path to a hash string of the video title to prevent duplicate file names
-                tempPath = tempPath[:25] + str(hash(videoTitle))[1:] + ".jpg" 
+                thumbnailPath = f"{pathLists[1]}thumbnail-{str(hash(videoTitle))[1:]}.jpg"
                 
-                # Clear the previous thumbnail image
-                if os.path.exists(tempPath):
-                    os.remove(tempPath)
+                # Clear the previous thumbnail image if it already exists
+                if os.path.exists(thumbnailPath):
+                    os.remove(thumbnailPath)
                     
 
-                with open(tempPath, 'wb') as file:
+                with open(thumbnailPath, 'wb') as file:
                     file.write(requests.get(thumbnailURL).content)
                 
                 # Using pillow resize the image
                 # Youtube thumbnail resolution is always 1280x720
-                img = Image.open(tempPath)
+                img = Image.open(thumbnailPath)
                 img.thumbnail((img.width / 2, img.height / 2)) # Output resolution 640x360
-                img.save(tempPath)
+                img.save(thumbnailPath)
                 
                 # Force the thumbnail to update
                 page.update()
@@ -116,11 +116,11 @@ def mainPage(page: ft.Page):
         
     page.controls.clear()  # Clear the previous controls
     
-    MainText = ft.Text("Video Downloader", size=50, height=100) # Create a text widget with the title
+    mainText = ft.Text("Video Downloader", size=50, height=100) # Create a text widget with the title
     URLInput = ft.TextField(label="Enter the URL", hint_text="Enter the URL of the video or playlist") # Create a text field widget for the URL input
     
-    button = ft.ElevatedButton("Download", on_click=submitButtonClick) # Create a button widget to submit the URL
-    page.add(MainText, URLInput, button) # Add the widgets to the page
+    submitButton = ft.ElevatedButton("Download", on_click=submitButtonClick) # Create a button widget to submit the URL
+    page.add(mainText, URLInput, submitButton) # Add the widgets to the page
 
 
 def downloadSettings(page: ft.Page):
@@ -157,7 +157,7 @@ def downloadSettings(page: ft.Page):
     page.controls.clear()  # Clear the previous controls
     
     # IMAGE AND TITLE
-    thumbnailImage = ft.Image(src=tempPath) # Create an image widget with the thumbnail
+    thumbnailImage = ft.Image(src=thumbnailPath) # Create an image widget with the thumbnail
     if "&list=" in videoURL: # If the URL is a playlist
         videoTitleText = ft.Text(f"[PLAYLIST] == {videoTitle}", size=20)
     else:
@@ -173,10 +173,10 @@ def downloadSettings(page: ft.Page):
     
     # VIDEO RESOLUTION
     resolutions = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"] # Video resolutions
-    options = [ft.dropdown.Option(resolution) for resolution in resolutions] # Create options for the dropdown
+    resolutionOptions = [ft.dropdown.Option(resolution) for resolution in resolutions] # Create options for the dropdown
     resolutionSelect = ft.Dropdown( # Create the dropdown widget
         width=200, 
-        options=options, 
+        options=resolutionOptions, 
         value="1080p", 
         disabled=True) # Create the dropdown widget
     
@@ -232,12 +232,12 @@ def download(page: ft.Page):
         
         # During Download
         if d['status'] == 'downloading':
-            total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate') # Get total size of the download
-            downloaded_bytes = d.get('downloaded_bytes', 0) # Get amount currently downloaded
+            totalBytes = d.get('total_bytes') or d.get('total_bytes_estimate') # Get total size of the download
+            downloadedBytes = d.get('downloaded_bytes', 0) # Get amount currently downloaded
             
-            if total_bytes and downloaded_bytes: # If the total size and amount downloaded are available
-                completionDecimal = downloaded_bytes / total_bytes # Calculate the completion percentage as decimal
-                print(f" - download progress: {completionDecimal:.2f}")  # Display with 4 decimal places for precision
+            if totalBytes and downloadedBytes: # If the total size and amount downloaded are available
+                completionDecimal = downloadedBytes / totalBytes # Calculate the completion percentage as decimal
+                print(f" - download progress: {completionDecimal:.2f}")  # Display with 2 decimal places for precision
                 loadingBar.value = completionDecimal # Update the progress bar with the completion percentage
                 downloadingText.value = f"Downloading...   {completionDecimal:.2%}\n{fileName}.{fileExtention}" # Add a text widget to the page
         
