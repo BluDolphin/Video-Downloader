@@ -9,11 +9,7 @@
 | download | The page thats shown during the download process | /download |
 
 
-
-## Variables
-List of all variables sorted by where they're decalred 
-
-### Global
+### Global Variables
 | Variable  | Type | Description | 
 | --------- | ---- | ----------- | 
 | pathLis  | list | Hold the paths which the program uses | 
@@ -21,9 +17,13 @@ List of all variables sorted by where they're decalred
 | thumbnailURL | str | The thumbnail url for the video | 
 | videoTitle | str | The title of the video | 
 | thumbnailPath | str | The path to the saved thumbnail | 
-| downloadVariables | dict | Stores settings for the download | 
+| downloadConfigData | dict | Stores settings for the download | 
 
-### Page - mainPage 
+## Page - Pseudocode
+
+
+
+
 Gloal variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
 | Variable  | Type | Description | 
@@ -79,13 +79,3 @@ Does not mofify any global variables
 | AorV | str | Stores the download configuration string for the download (yt_dlp) |
 | resoluton | str | Temporaraly holds the resolution if downloading a video |
 | ydl_opts | dict | Holds the download configuration settings for yt_dlp |
-
-
-## Functions
-
-
-
-
-
-
-

@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup # Used to get thumbnail from video URL
 from PIL import Image # Used to resize the thumbnail
 from moviepy.editor import VideoFileClip, AudioFileClip # Used to merge video and audio
 import yt_dlp, os, requests, shutil # Video downloader library, os library, requests library
+from mutagen.mp4 import MP4 # Used to edit metadata
 
 
 # Create necessary folders if they don't exist
@@ -25,7 +26,7 @@ videoURL = "" # Variable to store video URL
 thumbnailURL = "" # Variable to store thumbnail URL
 videoTitle = "" # Variable to store video title
 thumbnailPath = "" # Variable to store thumbnail path
-downloadVariables = {"audio": False, "video": False, "resolution": ""}
+downloadConfigData = {"format": "", "resolution": "", "metadata": False, "metaAlbum": ""} # Dictionary to store download configuration data
 
 def main(page: ft.Page): # Main function
     # Initialize the page settings
@@ -129,30 +130,33 @@ def downloadSettings(page: ft.Page):
         page.update()
         
     def downloadButtonClick(e): # Function for the download button
-        global downloadVariables
-        downloadVariables["audio"] = audioSelect.value
-        downloadVariables["video"] = videoSelect.value
-        downloadVariables["resolution"] = resolutionSelect.value
+        global downloadConfigData
+        
+        # Check the format and resolution and save to ddowloadConfigData
+        downloadConfigData["format"] = videoAudioSelect.value
+        downloadConfigData["resolution"] = resolutionSelect.value
+        downloadConfigData["metadata"] = customMetadata.value
+        downloadConfigData["metaAlbum"] = metaAlbumInput.value
         
         page.route = "/download"
         page.update()
+    
+    def formatSelectClick(e):
+        videoAudio = videoAudioSelect.value # Get the selected value from the dropdown
+        downloadButton.disabled = False # Enable the download button
         
-    def videoSelected(e): # Video quality selection
-        isChecked = videoSelect.value  # Get the value of the master checkbox
+        if videoAudio == "Video": # If the selected value is video
+            resolutionSelect.disabled = False # Enable the resolution dropdown
+        elif videoAudio == "Audio": # If the selected value is audio
+            resolutionSelect.disabled = True # Disable the resolution dropdown
+            
+        page.update()
+    
+    def metadataButtonClick(e):
+        metaAlbumInput.disabled = not metaAlbumInput.disabled # Enable or disable the album input field
         
-        resolutionSelect.disabled = not isChecked  # Enable or disable the resolution dropdown based on the master checkbox
-        audioSelect.value = False  # Enable or disable the audio checkbox based on the master checkbox
-        downloadButton.disabled = not isChecked  # Enable or disable the download button based on the master checkbox
         page.update()
         
-    def audioSelected(e):
-        isChecked = audioSelect.value
-        
-        resolutionSelect.disabled = True
-        videoSelect.value = False
-        downloadButton.disabled = not isChecked
-        
-        page.update()
         
     page.controls.clear()  # Clear the previous controls
     
@@ -164,13 +168,14 @@ def downloadSettings(page: ft.Page):
         videoTitleText = ft.Text(videoTitle, size=20)
         
     # VIDEO AND AUDIO SELECTION
-    videoSelect = ft.Checkbox(label="Download Video", on_change=videoSelected)
-    audioSelect = ft.Checkbox(label="Download Audio", on_change=audioSelected) # Select audio
-    
-    videoAudioRow = ft.Row([
-        videoSelect,audioSelect
-    ], alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER)  # Adjust alignment properties as needed
-    
+    videoAudioOptions = [ft.dropdown.Option(videoAudio) for videoAudio in ["Audio", "Video"]] # Video and Audio options
+    videoAudioSelect = ft.Dropdown(
+        width=200, 
+        options=videoAudioOptions, 
+        label="Select Format", 
+        disabled=False,
+        on_change=formatSelectClick)  # Create the dropdown widget
+
     # VIDEO RESOLUTION
     resolutions = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"] # Video resolutions
     resolutionOptions = [ft.dropdown.Option(resolution) for resolution in resolutions] # Create options for the dropdown
@@ -179,6 +184,18 @@ def downloadSettings(page: ft.Page):
         options=resolutionOptions, 
         value="1080p", 
         disabled=True) # Create the dropdown widget
+    
+    # CUSTOM METADATA
+    customMetadata = ft.Checkbox(label="Custom Metadata", width=20, on_change=metadataButtonClick) # Select audio
+    metaAlbumInput = ft.TextField(label="Album Name", width=200, disabled=True) # Create a text field widget for the album name
+
+
+    # Uses a nested columns in a row to align the settings
+    formatResolutionRow = ft.Row(
+        [ft.Column([videoAudioSelect, resolutionSelect]),
+         ft.Column([customMetadata, metaAlbumInput])], 
+         alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER) # Adjust alignment properties as needed
+    
     
     # CREATE BUTTONS
     # Create a Row widget to contain the buttons horizontally
@@ -189,7 +206,7 @@ def downloadSettings(page: ft.Page):
 
 
     page.add(thumbnailImage, videoTitleText)
-    page.add(videoAudioRow, resolutionSelect)
+    page.add(formatResolutionRow)
     page.add(buttonRow)
   
     
@@ -211,6 +228,7 @@ def download(page: ft.Page):
         
     fileName = "" # Variable to store the file name
     audioFile = "" # Variable to store the audio file
+    
     def my_hook(d):
         nonlocal cancelDownload 
         nonlocal fileName
@@ -221,14 +239,10 @@ def download(page: ft.Page):
             raise Exception("Download Cancelled") # Raise an exception to stop the download
         
         if "filename" in d: #Get filename
-            fileName = d['filename'].split("/")[-1].split(".") # Delete file path and split the filename by "." 
+            fileName = d['filename'].split("/")[-1].split(".") # Split the file name by ""."
             fileExtention = fileName[len(fileName)-1] # Get the file extension
             
-            if len(fileName) > 2: # If the file name has more than 2 elements (downloading both video and audio)
-                fileName = fileName[:-2] # Delete the format and file extention
-            else: # If the file name has only 2 elements (downloading only audio)
-                fileName = fileName[:-1] # Delete the file extention
-            fileName = ".".join(fileName) # Join the list elements with "."
+            fileName = f"{fileName[0]}.{fileExtention}"# Get the file name
         
         # During Download
         if d['status'] == 'downloading':
@@ -239,12 +253,14 @@ def download(page: ft.Page):
                 completionDecimal = downloadedBytes / totalBytes # Calculate the completion percentage as decimal
                 print(f" - download progress: {completionDecimal:.2f}")  # Display with 2 decimal places for precision
                 loadingBar.value = completionDecimal # Update the progress bar with the completion percentage
-                downloadingText.value = f"Downloading...   {completionDecimal:.2%}\n{fileName}.{fileExtention}" # Add a text widget to the page
+                downloadingText.value = f"Downloading...   {completionDecimal:.2%}\n{fileName}" # Add a text widget to the page
         
+        # The download will always download video then audio
+        # If its downloading video it will attempt to merge the audio with it before the next download
         # When Download is Finished                
         elif d['status'] == 'finished': # If the download is finished
             if fileExtention == "mp4":
-                completedText.value = f"Downloaded (1/2) - {fileName}" # Display the completion message
+                completedText.value = f"Downloaded (1/2) - {fileName}" # Display the partial completion message
             elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
                 page.update() # Update the page
@@ -263,7 +279,13 @@ def download(page: ft.Page):
 
                     filesDownloaded.append(fileName) # Add the video file to the list of files downloaded
                     loadingBarContainer.content = loadingBar
-            
+                
+                # If metadata is enabled
+                if downloadConfigData["metadata"] == True:
+                    downloadedFile = MP4(f"{pathLists[0]}{fileName}") # Open the downloaded file
+                    downloadedFile['\xa9alb'] = downloadConfigData["metaAlbum"] # Set the album metadata
+                    downloadedFile.save() # Save the metadata
+                          
         page.update() # Update the page
         
     page.controls.clear()  # Clear the previous controls
@@ -283,10 +305,10 @@ def download(page: ft.Page):
     page.add(downloadInfo, completedText, buttonRow) # Add the button to the page
     
     
-    if downloadVariables["audio"] == True:
+    if downloadConfigData["format"] == "Audio":
         AorV = "bestaudio[ext=m4a]/bestaudio"
     else:
-        resolution = downloadVariables["resolution"][:-1]
+        resolution = downloadConfigData["resolution"][:-1]
         AorV = f"bestvideo[height<={resolution}][ext=mp4]+bestaudio[ext=m4a]/best"
 
     AorV = AorV.split("+") # Split the format into video and audio
