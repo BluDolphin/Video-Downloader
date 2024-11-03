@@ -239,21 +239,20 @@ def download(page: ft.Page):
             raise Exception("Download Cancelled") # Raise an exception to stop the download
         
         if "filename" in d: #Get filename
-            fileName = d['filename'].split("/")[-1].split(".") # Split the file name by ""."
+            fileName = os.path.basename(d['filename']).split(".") # Split the file name by "."
             fileExtention = fileName[len(fileName)-1] # Get the file extension
-            
-            fileName = f"{fileName[0]}.{fileExtention}"# Get the file name
+            fileName = ".".join(fileName[:-1]) # Get the file name
         
         # During Download
         if d['status'] == 'downloading':
-            totalBytes = d.get('total_bytes') or d.get('total_bytes_estimate') # Get total size of the download
+            totalBytes = d.get('total_bytes_estimate') # Get total size of the download
             downloadedBytes = d.get('downloaded_bytes', 0) # Get amount currently downloaded
             
             if totalBytes and downloadedBytes: # If the total size and amount downloaded are available
                 completionDecimal = downloadedBytes / totalBytes # Calculate the completion percentage as decimal
                 print(f" - download progress: {completionDecimal:.2f}")  # Display with 2 decimal places for precision
                 loadingBar.value = completionDecimal # Update the progress bar with the completion percentage
-                downloadingText.value = f"Downloading...   {completionDecimal:.2%}\n{fileName}" # Add a text widget to the page
+                downloadingText.value = f"Downloading...   {completionDecimal:.2%}\n{fileName}.{fileExtention}" # Add a text widget to the page
         
         # The download will always download video then audio
         # If its downloading video it will attempt to merge the audio with it before the next download
@@ -271,8 +270,8 @@ def download(page: ft.Page):
                     page.update() # Update the page
                     
                     # Load video and audio
-                    audio = AudioFileClip((audioFile := f"{fileName}.m4a"))
-                    video = VideoFileClip((videoFile := f"{fileName}.mp4"))
+                    audio = AudioFileClip((audioFile := f"{pathLists[0]}{fileName}.m4a"))
+                    video = VideoFileClip((videoFile := f"{pathLists[0]}{fileName}.mp4"))
                     
                     videoWithAudio = video.set_audio(audio) # Merge video and audio
                     videoWithAudio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
@@ -282,7 +281,8 @@ def download(page: ft.Page):
                 
                 # If metadata is enabled
                 if downloadConfigData["metadata"] == True:
-                    downloadedFile = MP4(f"{pathLists[0]}{fileName}") # Open the downloaded file
+                    temp = f"{pathLists[0]}{fileName}.{fileExtention}"
+                    downloadedFile = MP4(temp) # Open the downloaded file
                     downloadedFile['\xa9alb'] = downloadConfigData["metaAlbum"] # Set the album metadata
                     downloadedFile.save() # Save the metadata
                           
@@ -375,7 +375,7 @@ def download(page: ft.Page):
                 ydl_opts['playlistend'] = ydl_opts['playlistend'] + 1 # Increment the playlist end
                 
             except Exception as e: # If playlist is finished
-                raise Exception# Exit loop
+                raise Exception # Exit loop
         
         finishedDownload() # Call the finished download function
         
