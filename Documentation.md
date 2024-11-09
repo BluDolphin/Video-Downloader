@@ -19,7 +19,22 @@
 | thumbnailPath | str | The path to the saved thumbnail | 
 | downloadConfigData | dict | Stores settings for the download | 
 
-## Page - Pseudocode
+## Pages - Pseudocode
+```mermaid
+flowchart TD
+    A[Start] --> B[Show mainPage]
+    B --> C[Get URL and check if valid]
+    C --> D{URL valid?}
+    D -->|Yes| E[Get thumbnail and video title]
+    E --> F[Save thumbnail]
+    F --> G[Change page to settings]
+    D -->|No| H[Display error banner]
+    H --> B[Show mainPage
+    G --> I[Show thumbnail video title]
+
+    
+```
+
 
 
 
