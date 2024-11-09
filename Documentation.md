@@ -8,7 +8,6 @@
 | downloadSettings | Prompts user for settings for the download | /settings |
 | download | The page thats shown during the download process | /download |
 
-
 ### Global Variables
 | Variable  | Type | Description | 
 | --------- | ---- | ----------- | 
@@ -19,25 +18,41 @@
 | thumbnailPath | str | The path to the saved thumbnail | 
 | downloadConfigData | dict | Stores settings for the download | 
 
-## Pages - Pseudocode
-```mermaid
-flowchart TD
-    A[Start] --> B[Show mainPage]
-    B --> C[Get URL and check if valid]
-    C --> D{URL valid?}
-    D -->|Yes| E[Get thumbnail and video title]
-    E --> F[Save thumbnail]
-    F --> G[Change page to settings]
-    D -->|No| H[Display error banner]
-    H --> B[Show mainPage
-    G --> I[Show thumbnail video title]
-
-    
-```
-
-
-
-
+## Pseudocode
+1. Import required packages
+2. Create downloads and temp folders 
+3. Initialise global variables 
+4. Define main(page) for page routing 
+5. Define mainPage
+    - Clear the page
+    - Display URL input box
+    - Display submit button
+    - On submit button press
+        - Download video thumbnail
+        - Store video title
+6. Define downloadSettings
+    - Clear the page
+    - Display video thumbnail 
+    - Display video/Playlist name 
+    - Display format dropdown (Audio, Video)
+    - Display resolution dropdown
+    - Display metadata checkbox
+    - Display album name input
+    - Display back and submit button
+7. Define download page
+    - Clear the page
+    - Display download progress bar
+    - Display download status text
+    - Display cancel button
+    - On download start
+        - Update progress bar
+        - Update status text
+    - On download finish
+        - Display completion text
+        - Enable finish button
+    - On cancel button press
+        - Stop download
+        - Return to main page
 
 Gloal variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
@@ -49,7 +64,6 @@ Gloal variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
 | mainText | flet text | Text field for the page |
 | URLInput | flet text field | Input field for the desired URL to download |
 | submitButton | flet button | The submit button |
-
 
 ### Page - downloadSettings
 Global variables modified - downloadVariables
@@ -67,7 +81,6 @@ Global variables modified - downloadVariables
 | buttonRow | flet row | Used to put the "main menu" and "download" button on the same row |
 | downloadButton | flet Button | Button to confirm setting and begin download |
 
-
 ### Page - download 
 Does not mofify any global variables 
 | Variable  | Type | Description | 
@@ -76,7 +89,7 @@ Does not mofify any global variables
 | fileName | str | Used to store the name of the file being currently downloaded |
 | fileExtention | str | Used to store the extention of the file being downloaded |
 | totalBytes | int | Total number of bytes of the download, used to calculate download percentage |
-| downloadedBytes | int | Total number of byted downloaded, used to calculate download percentage |
+| downloadedBytes | int | Total numbesr of byted downloaded, used to calculate download percentage |
 | conpletionDecimal | float | Completion percentage in a decimal format |
 | altMode| bool | Used to switch to an alternative download method when ffmpeg is not installed |
 | audio | audio file | Inputs the downloaded audio file into the program |
