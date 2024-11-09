@@ -1,6 +1,7 @@
 # DOCUMENTATION - WORK IN PROGRESS
 
 ## Pages
+
 | Page Name| Description | route |
 | -------- | ----------- | ---- |
 | main | Used to manage the page switching | N/A |
@@ -9,20 +10,22 @@
 | download | The page thats shown during the download process | /download |
 
 ### Global Variables
-| Variable  | Type | Description | 
-| --------- | ---- | ----------- | 
-| pathLis  | list | Hold the paths which the program uses | 
-| videoURL | str | The video url for the download | 
-| thumbnailURL | str | The thumbnail url for the video | 
-| videoTitle | str | The title of the video | 
-| thumbnailPath | str | The path to the saved thumbnail | 
-| downloadConfigData | dict | Stores settings for the download | 
+
+| Variable  | Type | Description |
+| --------- | ---- | ----------- |
+| pathLis  | list | Hold the paths which the program uses |
+| videoURL | str | The video url for the download |
+| thumbnailURL | str | The thumbnail url for the video |
+| videoTitle | str | The title of the video |
+| thumbnailPath | str | The path to the saved thumbnail |
+| downloadConfigData | dict | Stores settings for the download |
 
 ## Pseudocode
+
 1. Import required packages
-2. Create downloads and temp folders 
-3. Initialise global variables 
-4. Define main(page) for page routing 
+2. Create downloads and temp folders
+3. Initialise global variables
+4. Define main(page) for page routing
 5. Define mainPage
     - Clear the page
     - Display URL input box
@@ -32,8 +35,8 @@
         - Store video title
 6. Define downloadSettings
     - Clear the page
-    - Display video thumbnail 
-    - Display video/Playlist name 
+    - Display video thumbnail
+    - Display video/Playlist name
     - Display format dropdown (Audio, Video)
     - Display resolution dropdown
     - Display metadata checkbox
@@ -54,10 +57,12 @@
         - Stop download
         - Return to main page
 
+### Page - mainPage
+
 Gloal variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
 
-| Variable  | Type | Description | 
-| --------- | ---- | ----------- | 
+| Variable  | Type | Description |
+| --------- | ---- | ----------- |
 | response | html | Used to check if the entered URL is valid and has a page attached |
 | soup | html | Parses the html code to find the video title |
 | img | image | The variable which is used to display the thumbnail |
@@ -66,10 +71,11 @@ Gloal variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
 | submitButton | flet button | The submit button |
 
 ### Page - downloadSettings
+
 Global variables modified - downloadVariables
 
-| Variable  | Type | Description | 
-| --------- | ---- | ----------- | 
+| Variable  | Type | Description |
+| --------- | ---- | ----------- |
 | isChecked | bool | Used to enable and disable the download button if an option has been picked or not | 
 | videoTitleText | flet text | Text field to show the entered videos title and if it is a playlist | 
 | videoSelect | flet checkbox | Checkbox to download video (w/audio), will enable resolution select if picked |
@@ -81,10 +87,12 @@ Global variables modified - downloadVariables
 | buttonRow | flet row | Used to put the "main menu" and "download" button on the same row |
 | downloadButton | flet Button | Button to confirm setting and begin download |
 
-### Page - download 
-Does not mofify any global variables 
-| Variable  | Type | Description | 
-| ----------| -----| ----------- | 
+### Page - download
+
+Does not mofify any global variables
+
+| Variable  | Type | Description |
+| ----------| -----| ----------- |
 | cancelDownload | bool | Used by the cancel download button to stop the download |
 | fileName | str | Used to store the name of the file being currently downloaded |
 | fileExtention | str | Used to store the extention of the file being downloaded |
