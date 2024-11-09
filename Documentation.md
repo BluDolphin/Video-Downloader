@@ -1,5 +1,19 @@
 # DOCUMENTATION - WORK IN PROGRESS
 
+## Notes
+
+When creating the download and temp folders, the program will auto purge temp if it already exists.
+
+When downloading the thumbnail the file name is combined with the hash of the video title to prevent duplicate file names.
+
+The settings for the download are nested within their columns inside a row to achieve the layout.
+The metadata addition has been made to be easily expanded just by adding a new input box and appropriate key to the downloadConfigData dictionary.
+
+The download hook continuously checkes to see if the cancelDownload is true to terminate the download.
+The download percentage is calculated with the 'total_bytes_estimate' and 'downloadedBytes' from the hook. Completion percentage is then calculated with downloadedBytes/totalBytes, and passed to the loading bar to be displayed
+
+When attempting to download videos yt_dlp will attempt to use ffmpeg. If it is not installed, instead of crashing, the program will fall back to using moviepy at the cost of speed. Following the merge the video file with be overwritten and the audio file will be moved to the temp folder.
+
 ## Pages
 
 | Page Name| Description | route |
@@ -8,17 +22,6 @@
 | mainPage | The initial startup page with input for the url | / |
 | downloadSettings | Prompts user for settings for the download | /settings |
 | download | The page thats shown during the download process | /download |
-
-### Global Variables
-
-| Variable  | Type | Description |
-| --------- | ---- | ----------- |
-| pathLis  | list | Hold the paths which the program uses |
-| videoURL | str | The video url for the download |
-| thumbnailURL | str | The thumbnail url for the video |
-| videoTitle | str | The title of the video |
-| thumbnailPath | str | The path to the saved thumbnail |
-| downloadConfigData | dict | Stores settings for the download |
 
 ## Pseudocode
 
@@ -57,61 +60,68 @@
         - Stop download
         - Return to main page
 
-### Page - mainPage
-
-Gloal variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
+### Global Variables
 
 | Variable  | Type | Description |
 | --------- | ---- | ----------- |
-| response | html | Used to check if the entered URL is valid and has a page attached |
-| soup | html | Parses the html code to find the video title |
-| img | image | The variable which is used to display the thumbnail |
-| mainText | flet text | Text field for the page |
-| URLInput | flet text field | Input field for the desired URL to download |
-| submitButton | flet button | The submit button |
+| pathLists | list | Hold the paths which the program uses |
+| videoURL | str | The video url for the download |
+| thumbnailURL | str | The thumbnail url for the video |
+| videoTitle | str | The title of the video |
+| thumbnailPath | str | The path to the saved thumbnail |
+| downloadConfigData | dict | Stores settings for the download (format, resolution, metadata, metaAlbum) |
+
+### Page - mainPage
+
+Global variables modified - videoURL, thumbnailURL, videoTitle, thumbnailPath
+
+| Variable  | Type | Description |
+| --------- | ---- | ----------- |
+| response | html | Used to check if the entered URL is valid |
+| soup | html | Parses the html code to find video metadata |
+| img | image | Used to resize the thumbnail |
+| mainText | flet text | Title text for the page |
+| URLInput | flet text field | Input field for the URL |
+| submitButton | flet button | Button to submit the URL |
 
 ### Page - downloadSettings
 
-Global variables modified - downloadVariables
+Global variables modified - downloadConfigData
 
 | Variable  | Type | Description |
 | --------- | ---- | ----------- |
-| isChecked | bool | Used to enable and disable the download button if an option has been picked or not | 
-| videoTitleText | flet text | Text field to show the entered videos title and if it is a playlist | 
-| videoSelect | flet checkbox | Checkbox to download video (w/audio), will enable resolution select if picked |
-| audioSelect | flet checkbox | Checkbox to download only the audio |
-| videoAudioRow | flet row | Used to put the video and audio checkboxes in line horizontally |
-| resolutions | list | A list of posible resolutons (16:9) to be used for the video download |
-| resolutionOptions | flet dropdown options | Adds all resolutions into a format that can be used by a flet dropdown |
-| resolutionSelect | flet dropdown | Dropdown menu to select what video resolution to download (will defualt to highest if selected is not available) |
-| buttonRow | flet row | Used to put the "main menu" and "download" button on the same row |
-| downloadButton | flet Button | Button to confirm setting and begin download |
+| thumbnailImage | flet image | Displays the video thumbnail |
+| videoTitleText | flet text | Shows video title and if it's a playlist |
+| videoAudioOptions | list | List of format options (Audio/Video) |
+| videoAudioSelect | flet dropdown | Dropdown for selecting format |
+| resolutions | list | List of available video resolutions |
+| resolutionOptions | flet dropdown options | Resolution options for dropdown |
+| resolutionSelect | flet dropdown | Dropdown for selecting resolution |
+| customMetadata | flet checkbox | Checkbox to enable custom metadata |
+| metaAlbumInput | flet textfield | Input for album name metadata |
+| formatResolutionRow | flet row | Contains format and resolution settings |
+| buttonRow | flet row | Contains navigation buttons |
+| downloadButton | flet button | Button to start download |
 
 ### Page - download
 
-Does not mofify any global variables
+Does not modify global variables
 
 | Variable  | Type | Description |
 | ----------| -----| ----------- |
-| cancelDownload | bool | Used by the cancel download button to stop the download |
-| fileName | str | Used to store the name of the file being currently downloaded |
-| fileExtention | str | Used to store the extention of the file being downloaded |
-| totalBytes | int | Total number of bytes of the download, used to calculate download percentage |
-| downloadedBytes | int | Total numbesr of byted downloaded, used to calculate download percentage |
-| conpletionDecimal | float | Completion percentage in a decimal format |
-| altMode| bool | Used to switch to an alternative download method when ffmpeg is not installed |
-| audio | audio file | Inputs the downloaded audio file into the program |
-| video | video file | Inputs the downloaded video file into the program | 
-| videoWithAudio | video file | Variable to store the merged audio and video file |
-| filesDownloaded | list | Used to keep track of what files have been downlaoded when running altMode |
-| downloadingText | flet text | General downloading information text |
-| loadingBar | flet progress bar | Visual representation to show the download progress |
-| loadingBarContainer | flet container | Holds the "loadingBar" so that its value can be modified |
-| downloadInfo | flet column | Alligns the "downloadingText" and "loadingBarContainer" so that they are vertically in line with each other |
-| completedText | flet text | Slightly larger text to show the downloaded file and the finished download text |
-| cancelButton | flet button | Button to cancel the download and return to the main menu |
-| finishedButton | flet button | Button that "unlocks" when the download is finished that returns to the main menu |
-| buttonRow | flet row | Holds the cancel button and finished button so they are horizontally aligned |
-| AorV | str | Stores the download configuration string for the download (yt_dlp) |
-| resoluton | str | Temporaraly holds the resolution if downloading a video |
-| ydl_opts | dict | Holds the download configuration settings for yt_dlp |
+| cancelDownload | bool | Flag to stop the download |
+| fileName | str | Name of file being downloaded |
+| audioFile | str | Path to downloaded audio file |
+| totalBytes | int | Total size of download |
+| downloadedBytes | int | Current downloaded bytes |
+| completionDecimal | float | Download progress as decimal |
+| altMode | bool | Flag for alternative download mode (no ffmpeg) |
+| filesDownloaded | list | Tracks downloaded files in altMode |
+| downloadingText | flet text | Shows download status |
+| loadingBar | flet progress bar | Visual download progress |
+| loadingBarContainer | flet container | Contains progress bar |
+| downloadInfo | flet column | Groups download status elements |
+| completedText | flet text | Shows completion status |
+| buttonRow | flet row | Contains control buttons |
+| AorV | str/list | Download format configuration |
+| ydl_opts | dict | Options for yt-dlp downloader |

@@ -164,7 +164,7 @@ def downloadSettings(page: ft.Page):
     thumbnailImage = ft.Image(src=thumbnailPath) # Create an image widget with the thumbnail
     if "&list=" in videoURL: # If the URL is a playlist
         videoTitleText = ft.Text(f"[PLAYLIST] == {videoTitle}", size=20)
-    else:
+    else: # If the URL is a video
         videoTitleText = ft.Text(videoTitle, size=20)
         
     # VIDEO AND AUDIO SELECTION
@@ -186,7 +186,7 @@ def downloadSettings(page: ft.Page):
         disabled=True) # Create the dropdown widget
     
     # CUSTOM METADATA
-    customMetadata = ft.Checkbox(label="Custom Metadata", width=20, on_change=metadataButtonClick) # Select audio
+    customMetadata = ft.Checkbox(label="Custom Metadata", width=20, on_change=metadataButtonClick) # Toggle to enable or disable metadata
     metaAlbumInput = ft.TextField(label="Album Name", width=200, disabled=True) # Create a text field widget for the album name
 
 
@@ -241,7 +241,7 @@ def download(page: ft.Page):
         if "filename" in d: #Get filename
             fileName = os.path.basename(d['filename']).split(".") # Split the file name by "."
             fileExtention = fileName[len(fileName)-1] # Get the file extension
-            fileName = ".".join(fileName[:-1]) # Get the file name
+            fileName = ".".join(fileName[:-1]) # rejoin the file name without the extension
         
         # During Download
         if d['status'] == 'downloading':
