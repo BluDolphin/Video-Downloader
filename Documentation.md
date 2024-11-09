@@ -29,7 +29,7 @@ flowchart TD
     E --> F[Save thumbnail]
     F --> G[Change page to settings]
     D -->|No| H[Display error banner]
-    H --> B[Show mainPage
+    H --> B[Show mainPage]
     G --> I[Show thumbnail video title]
 
     
