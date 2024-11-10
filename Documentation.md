@@ -1,16 +1,16 @@
-# DOCUMENTATION - WORK IN PROGRESS
+# DOCUMENTATION
 
 ## Notes
 
 When creating the download and temp folders, the program will auto purge temp if it already exists.
 
-When downloading the thumbnail the file name is combined with the hash of the video title to prevent duplicate file names.
+The thumbnail uses the hashed video title prevent duplicate file names.
 
-The settings for the download are nested within their columns inside a row to achieve the layout.
-The metadata addition has been made to be easily expanded just by adding a new input box and appropriate key to the downloadConfigData dictionary.
+The download settings nested within their columns inside a row to achieve the layout.
+The metadata can be easily expanded just by adding a new input box and appropriate key to the downloadConfigData dictionary.
 
 The download hook continuously checkes to see if the cancelDownload is true to terminate the download.
-The download percentage is calculated with the 'total_bytes_estimate' and 'downloadedBytes' from the hook. Completion percentage is then calculated with downloadedBytes/totalBytes, and passed to the loading bar to be displayed
+Download percentage is calculated with the 'total_bytes_estimate' and 'downloadedBytes' from the hook. Completion percentage is then calculated with downloadedBytes/totalBytes, and passed to the loading bar to be displayed
 
 When attempting to download videos yt_dlp will attempt to use ffmpeg. If it is not installed, instead of crashing, the program will fall back to using moviepy at the cost of speed. Following the merge the video file with be overwritten and the audio file will be moved to the temp folder.
 
