@@ -5,6 +5,12 @@ When submitting a link you can choose to download the audio or video (w/audio). 
 
 IMPORTANT - When downloading videos it's best to install FFmpeg onto your device as the program primaraly uses it to add the audio to the downloaded videos. There is a fallback incase it is not installed, however this is significantly slower especially when downloading bulk/long videos.
 
+
+# Screenshot
+![Screenshot 2024-10-30 162854](https://github.com/user-attachments/assets/81d4196c-62f7-47a2-80cb-25bd4b33a61d) 
+![Screenshot 2024-10-30 162927](https://github.com/user-attachments/assets/1cf57192-5119-4f4e-8ba4-35bccf2b11d1)
+
+
 # Dependencies
 To use the source code for the GUI program, the packages "yt_dlp", "pillow", "flet", "moviepy", and "bs4" will need to be installed via pip.
 
