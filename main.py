@@ -60,6 +60,8 @@ def main(page: ft.Page): # Main function
     
     
 def mainPage(page: ft.Page):
+    page.adaptive = True # Set the page to adaptive mode
+    
     def submitButtonClick(e): # Function for button press
         # Get video URL from the input field
         global videoURL, thumbnailURL, videoTitle, thumbnailPath
