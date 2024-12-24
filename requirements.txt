@@ -1,7 +1,0 @@
-flet==0.22.*
-yt-dlp==2024.8.1
-pillow==11.0.0
-moviepy==1.0.3
-mutagen==1.47.0
-bs4==0.0.2
-ffmpeg-python==0.2.0
