@@ -32,7 +32,7 @@ company = "BluDolphin"
 copyright = "Null"
 
 # compile options
-compile.app = true # --compile-app
+#compile.app = true # --compile-app
 compile.packages = true # --compile-packages
 #compile.cleanup = true # --cleanup-on-compile
 
