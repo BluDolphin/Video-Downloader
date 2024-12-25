@@ -12,6 +12,7 @@ dependencies = [
   "mutagen==1.47.0",
   "bs4==0.0.2",
   "ffmpeg-python==0.2.0",
+  "imageio_ffmpeg==0.5.1"
 ]
 
 
@@ -29,6 +30,11 @@ company = "BluDolphin"
 
 # copyright text to display in about app dialogs
 copyright = "Null"
+
+# compile options
+compile.app = true # --compile-app
+compile.packages = true # --compile-packages
+#compile.cleanup = true # --cleanup-on-compile
 
 [tool.flet.app]
 path = "src"
