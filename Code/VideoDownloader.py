@@ -1,7 +1,7 @@
 import flet as ft # GUI library
 from bs4 import BeautifulSoup # Used to get thumbnail from video URL
 from PIL import Image # Used to resize the thumbnail
-from moviepy.editor import VideoFileClip, AudioFileClip # Used to merge video and audio
+from moviepy.editor import VideoFileClip, AudioFileClip # Used to merge video and audio (Using outdated version for no ffmpeg)
 import yt_dlp, os, requests, shutil # Video downloader library, os library, requests library
 from mutagen.mp4 import MP4 # Used to edit metadata
 
@@ -109,11 +109,10 @@ def mainPage(page: ft.Page):
                 
     def errorBanner(message): # Function to display an error banner
         snackbar = ft.SnackBar( # Show a snackbar with the error message
-            content=ft.Text(message, color=ft.colors.WHITE, size=20),
-            bgcolor=ft.colors.RED
-            
+            content=ft.Text(message, color=ft.Colors.WHITE, size=20),
+            bgcolor=ft.Colors.RED
         )
-        page.show_snack_bar(snackbar)
+        page.open(snackbar)
         
     page.controls.clear()  # Clear the previous controls
     
@@ -221,10 +220,10 @@ def download(page: ft.Page):
         
     def errorBanner(message): # Function to display an error banner
         snackbar = ft.SnackBar( # Show a snackbar with the error message
-            content=ft.Text(message, color=ft.colors.WHITE, size=20),
-            bgcolor=ft.colors.RED
+            content=ft.Text(message, color=ft.Colors.WHITE, size=20),
+            bgcolor=ft.Colors.RED
         )
-        page.show_snack_bar(snackbar)
+        page.open(snackbar)
         
     fileName = "" # Variable to store the file name
     audioFile = "" # Variable to store the audio file
@@ -266,7 +265,7 @@ def download(page: ft.Page):
                 
                 if altMode == True:           
                     downloadingText.value = "Merging Audio and Video\nPlease wait..." # Change the download status to merging audio and video
-                    loadingBarContainer.content = ft.ProgressBar(width=1000, height=10, color=ft.colors.BLUE) # Change the color of the progress bar
+                    loadingBarContainer.content = ft.ProgressBar(width=1000, height=10, color=ft.Colors.BLUE) # Change the color of the progress bar
                     page.update() # Update the page
                     
                     # Load video and audio
@@ -288,7 +287,7 @@ def download(page: ft.Page):
                           
         page.update() # Update the page
         
-    page.controls.clear()  # Clear the previous controls
+    page.controls.clear()  # Clear the previous controlseeeee
     
     
     downloadingText = ft.Text((value := "Starting Download..."), size=20) # Create a text widget to display the download status
@@ -331,7 +330,7 @@ def download(page: ft.Page):
         downloadingText.size = 30
           
         loadingBarContainer.content = loadingBar # Change the color of the progress bar
-        loadingBar.color = ft.colors.GREEN
+        loadingBar.color = ft.Colors.GREEN
         loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
         
         # Enable the finished button and disable the cancel button
@@ -359,6 +358,9 @@ def download(page: ft.Page):
         ydl_opts['playliststart'] = 1 # Reset pointer 
         ydl_opts['playlistend'] = 1 # Reset pointer
         
+        # While true the program will attempt to download the video and audio seperatly at the pointer position
+        # After download is complete merge will run and metadata will be added (same function in the hook as normal)
+        # After merge iterate both pointers by 1
         while True:
             try:
                 for format in AorV: # For each format in the format list
@@ -382,7 +384,7 @@ def download(page: ft.Page):
     except Exception as e:
         downloadingText.value = f"An error occurred: {e}" # Display the error message
         loadingBarContainer.content = loadingBar
-        loadingBar.color = ft.colors.RED
+        loadingBar.color = ft.Colors.RED
         loadingBar.value = 1
     page.update() 
     
