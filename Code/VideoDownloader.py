@@ -224,6 +224,30 @@ def download(page: ft.Page):
             bgcolor=ft.Colors.RED
         )
         page.open(snackbar)
+    
+    def finishedDownload():
+        # Change the download status to finished
+        downloadingText.value = "Download Finished"
+        downloadingText.size = 30
+          
+        loadingBarContainer.content = loadingBar # Change the color of the progress bar
+        loadingBar.color = ft.Colors.GREEN
+        loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
+        
+        # Enable the finished button and disable the cancel button
+        finishedButton.disabled = False
+        cancelButton.disabled = True
+        downloadingText.value = "Download Finished"
+        downloadingText.size = 30
+          
+        loadingBarContainer.content = loadingBar # Change the color of the progress bar
+        loadingBar.color = ft.Colors.GREEN
+        loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
+        
+        # Enable the finished button and disable the cancel button
+        finishedButton.disabled = False
+        cancelButton.disabled = True
+        
         
     fileName = "" # Variable to store the file name
     audioFile = "" # Variable to store the audio file
@@ -275,7 +299,6 @@ def download(page: ft.Page):
                     videoWithAudio = video.set_audio(audio) # Merge video and audio
                     videoWithAudio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
 
-                    filesDownloaded.append(fileName) # Add the video file to the list of files downloaded
                     loadingBarContainer.content = loadingBar
                 
                 # If metadata is enabled
@@ -310,42 +333,28 @@ def download(page: ft.Page):
         resolution = downloadConfigData["resolution"][:-1]
         AorV = f"bestvideo[height<={resolution}][ext=mp4]+bestaudio[ext=m4a]/best"
 
-    AorV = AorV.split("+") # Split the format into video and audio
     
     ydl_opts = {
         'no_warnings': True,  # Suppress all warning messages
         'noplaylist': False,  # Download just the video, if the URL refers to a video and a playlist.
         'quiet': True,  # Do not print messages to stdout.
-        'format': AorV[0],  # Choice of quality.
+        'format': AorV,  # Choice of quality.
         'outtmpl': 'downloads/%(title)s.%(ext)s',  # Name the file the ID of the video
         'restrictfilenames': True,  # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
         'nooverwrites': True,  # Prevent overwriting files.
         'continuedl': True,  # Force resume of partially downloaded files.
         'progress_hooks': [my_hook],  # Directly pass the function without lambda
     }
-    
-    def finishedDownload():
-        # Change the download status to finished
-        downloadingText.value = "Download Finished"
-        downloadingText.size = 30
-          
-        loadingBarContainer.content = loadingBar # Change the color of the progress bar
-        loadingBar.color = ft.Colors.GREEN
-        loadingBar.value = 1 # Set the progress bar to 100% (used for when downloads are skipped)
-        
-        # Enable the finished button and disable the cancel button
-        finishedButton.disabled = False
-        cancelButton.disabled = True
+
     
     # Delete playliststart and playlistend from ydl_opts
+    # This is used to reset the pointer for the playlist when run multiple times
     if 'playliststart' in ydl_opts:
         del ydl_opts['playliststart']
         del ydl_opts['playlistend']
 
     altMode = False # Variable to store if the download is in alt mode
-    try:
-        ydl_opts['format'] = AorV[0] if len(AorV) == 1 else f"{AorV[0]}+{AorV[1]}" # Set the format the format
-        
+    try: # Attempt to download the video
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([videoURL])
         finishedDownload()
@@ -372,7 +381,8 @@ def download(page: ft.Page):
                 
                 if fileName in filesDownloaded: # If the file has already been downloaded
                     break # Exit loop
-                
+
+                filesDownloaded.append(fileName) # Add the video file to the list of files downloaded
                 ydl_opts['playliststart'] = ydl_opts['playliststart'] + 1 # Increment the playlist start
                 ydl_opts['playlistend'] = ydl_opts['playlistend'] + 1 # Increment the playlist end
                 
