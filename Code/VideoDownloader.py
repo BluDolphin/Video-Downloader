@@ -282,7 +282,10 @@ def download(page: ft.Page):
         # When Download is Finished                
         elif d['status'] == 'finished': # If the download is finished
             if fileExtention == "mp4":
-                completedText.value = f"Downloaded (1/2) - {fileName}" # Display the partial completion message
+                if altMode == True: # If the download is in alt mode
+                    completedText.value = f"Downloaded (1/2) - {fileName}" # Display the partial completion message
+                else: # Display the completion message
+                    completedText.value = f"Downloaded - {fileName}" # Display the completion message
             elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
                 page.update() # Update the page
