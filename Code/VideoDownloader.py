@@ -2,7 +2,7 @@ import flet as ft # GUI library
 from bs4 import BeautifulSoup # Used to get thumbnail from video URL
 from PIL import Image # Used to resize the thumbnail
 from moviepy.editor import VideoFileClip, AudioFileClip # Used to merge video and audio (Using outdated version for no ffmpeg)
-import yt_dlp, os, requests, shutil # Video downloader library, os library, requests library
+import yt_dlp, os, requests, shutil,time # Video downloader library, os library, requests library
 from mutagen.mp4 import MP4 # Used to edit metadata
 
 
@@ -210,7 +210,7 @@ def downloadSettings(page: ft.Page):
   
     
 def download(page: ft.Page):
-    cancelDownload = False
+    cancelDownload = False    
     def cancelButtonClick(e): 
         nonlocal cancelDownload
         cancelDownload = True
@@ -247,16 +247,37 @@ def download(page: ft.Page):
         # Enable the finished button and disable the cancel button
         finishedButton.disabled = False
         cancelButton.disabled = True
+    
+    def downloadFailList(e):
+        global videoURL
+        nonlocal videoIndex
+        downloadingText.value = f"An error occurred: {e}\nSkipping video, adding to fail list" # Display the error message
+        loadingBarContainer.content = loadingBar
+        loadingBar.color = ft.Colors.RED
+        loadingBar.value = 1
         
+        failedLogFile = "failed_downloads.txt"
+        videoIndex += 1 # Increment the video index fto pint to the failed video
+
+        try:
+            with open(failedLogFile, "a", encoding="utf-8") as f:
+                f.write(f"URL: {videoIndex}\n")
+        except Exception as e:
+            errorBanner(f"Could not write to failed downloads file: {e}")
+        
+        ydl_opts['playliststart'] = videoIndex # Set the playlist start to the next video index
+        
+        startDownload()
         
     fileName = "" # Variable to store the file name
     audioFile = "" # Variable to store the audio file
-    
+    videoIndex = 1 # Store the current URL
+
     def my_hook(d):
         nonlocal cancelDownload 
         nonlocal fileName
         nonlocal audioFile
-        nonlocal filesDownloaded
+        nonlocal videoIndex
         
         if cancelDownload == True: # If the cancel button was pressed
             raise Exception("Download Cancelled") # Raise an exception to stop the download
@@ -265,6 +286,9 @@ def download(page: ft.Page):
             fileName = os.path.basename(d['filename']).split(".") # Split the file name by "."
             fileExtention = fileName[len(fileName)-1] # Get the file extension
             fileName = ".".join(fileName[:-1]) # rejoin the file name without the extension
+        
+        if "url" in d: # Get the URL of the video
+            currentURL = d['url'] # Update the current URL
         
         # During Download
         if d['status'] == 'downloading':
@@ -282,27 +306,10 @@ def download(page: ft.Page):
         # When Download is Finished                
         elif d['status'] == 'finished': # If the download is finished
             if fileExtention == "mp4":
-                if altMode == True: # If the download is in alt mode
-                    completedText.value = f"Downloaded (1/2) - {fileName}" # Display the partial completion message
-                else: # Display the completion message
-                    completedText.value = f"Downloaded - {fileName}" # Display the completion message
+                completedText.value = f"Downloaded - {fileName} 1/2" # Display the completion message
             elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
                 page.update() # Update the page
-                
-                if altMode == True:           
-                    downloadingText.value = "Merging Audio and Video\nPlease wait..." # Change the download status to merging audio and video
-                    loadingBarContainer.content = ft.ProgressBar(width=1000, height=10, color=ft.Colors.BLUE) # Change the color of the progress bar
-                    page.update() # Update the page
-                    
-                    # Load video and audio
-                    audio = AudioFileClip((audioFile := f"{pathLists[0]}{fileName}.m4a"))
-                    video = VideoFileClip((videoFile := f"{pathLists[0]}{fileName}.mp4"))
-                    
-                    videoWithAudio = video.set_audio(audio) # Merge video and audio
-                    videoWithAudio.write_videofile(videoFile, codec='libx264', audio_codec='aac') # Write the video file
-
-                    loadingBarContainer.content = loadingBar
                 
                 # If metadata is enabled
                 if downloadConfigData["metadata"] == True:
@@ -310,12 +317,14 @@ def download(page: ft.Page):
                     downloadedFile = MP4(temp) # Open the downloaded file
                     downloadedFile['\xa9alb'] = downloadConfigData["metaAlbum"] # Set the album metadata
                     downloadedFile.save() # Save the metadata
+                
+                videoIndex += 1 # Increment the video index for the next download
                           
         page.update() # Update the page
         
     page.controls.clear()  # Clear the previous controlseeeee
     
-    
+    # TODO: add this to start download to update red fail warning
     downloadingText = ft.Text((value := "Starting Download..."), size=20) # Create a text widget to display the download status
     loadingBar = ft.ProgressBar(width=1000, height=10) # Create a progress bar widget
     loadingBarContainer = ft.Container(content=loadingBar) # Create a container widget to hold the progress bar
@@ -349,57 +358,24 @@ def download(page: ft.Page):
         'progress_hooks': [my_hook],  # Directly pass the function without lambda
     }
 
+
+    def startDownload():
+        try: # Attempt to download the video
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
+                ydl.download([videoURL])
+            
+        except Exception as e:
+            downloadFailList(e) # Add the video to the failed downloads list
+            page.update()
+            time.sleep(5)        
+            page.update() 
+            
+        finishedDownload() 
     
-    # Delete playliststart and playlistend from ydl_opts
-    # This is used to reset the pointer for the playlist when run multiple times
+    # Clear the playlist start if it exists    
     if 'playliststart' in ydl_opts:
         del ydl_opts['playliststart']
-        del ydl_opts['playlistend']
-
-    altMode = False # Variable to store if the download is in alt mode
-    try: # Attempt to download the video
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
-            ydl.download([videoURL])
-        finishedDownload()
     
-    except yt_dlp.utils.DownloadError as e: # If ffmpeg not installed 
-        filesDownloaded = [] # List to store the files downloaded
-        altMode = True
-        errorBanner("ffmpeg not installed - running in alt mode, speed will be reduced")
-        
-        ydl_opts['playliststart'] = 1 # Reset pointer 
-        ydl_opts['playlistend'] = 1 # Reset pointer
-        
-        # While true the program will attempt to download the video and audio seperatly at the pointer position
-        # After download is complete merge will run and metadata will be added (same function in the hook as normal)
-        # After merge iterate both pointers by 1
-        while True:
-            try:
-                for format in AorV: # For each format in the format list
-                    ydl_opts['format'] = format # Set download format
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl: # Download the video
-                        ydl.download([videoURL])
-                
-                shutil.move(audioFile, os.getcwd() + "/" + pathLists[1]) # Move audio file to temp
-                
-                if fileName in filesDownloaded: # If the file has already been downloaded
-                    break # Exit loop
-
-                filesDownloaded.append(fileName) # Add the video file to the list of files downloaded
-                ydl_opts['playliststart'] = ydl_opts['playliststart'] + 1 # Increment the playlist start
-                ydl_opts['playlistend'] = ydl_opts['playlistend'] + 1 # Increment the playlist end
-                
-            except Exception as e: # If playlist is finished
-                raise Exception # Exit loop
-        
-        finishedDownload() # Call the finished download function
-        
-    except Exception as e:
-        downloadingText.value = f"An error occurred: {e}" # Display the error message
-        loadingBarContainer.content = loadingBar
-        loadingBar.color = ft.Colors.RED
-        loadingBar.value = 1
-    page.update() 
+    startDownload() # Start the download process
     
-     
 ft.app(main) 
