@@ -26,7 +26,10 @@ videoURL = "" # Variable to store video URL
 thumbnailURL = "" # Variable to store thumbnail URL
 videoTitle = "" # Variable to store video title
 thumbnailPath = "" # Variable to store thumbnail path
-downloadConfigData = {"format": "", "resolution": "", "metadata": False, "metaAlbum": ""} # Dictionary to store download configuration data
+downloadConfigData = {"format": "", "resolution": "", "metadata": False, 
+                      "metaAlbum": "", "metaTrackNumber": False, "metaArtist": "", 
+                      "metaComposer": "", "metaLyricists": "", "metaGenre": "", 
+                      "metaYear": ""} # Dictionary to store download configuration data
 
 def main(page: ft.Page): # Main function
     # Initialize the page settings
@@ -136,7 +139,13 @@ def downloadSettings(page: ft.Page):
         downloadConfigData["resolution"] = resolutionSelect.value
         downloadConfigData["metadata"] = customMetadata.value
         downloadConfigData["metaAlbum"] = metaAlbumInput.value
-        
+        downloadConfigData["metaTrackNumber"] = metaTrackNumberInput.value
+        downloadConfigData["metaArtist"] = metaArtistInput.value
+        downloadConfigData["metaComposer"] = metaComposerInput.value
+        downloadConfigData["metaLyricists"] = metaLyricistsInput.value 
+        downloadConfigData["metaGenre"] = metaGenreInput.value
+        downloadConfigData["metaYear"] = metaYearInput.value
+
         page.route = "/download"
         page.update()
     
@@ -153,6 +162,12 @@ def downloadSettings(page: ft.Page):
     
     def metadataButtonClick(e):
         metaAlbumInput.disabled = not metaAlbumInput.disabled # Enable or disable the album input field
+        metaTrackNumberInput.disabled = not metaTrackNumberInput.disabled # Enable or disable the track number input field
+        metaArtistInput.disabled = not metaArtistInput.disabled # Enable or disable the artist input field
+        metaComposerInput.disabled = not metaComposerInput.disabled # Enable or disable the composer input field
+        metaLyricistsInput.disabled = not metaLyricistsInput.disabled # Enable or disable the lyricists input field
+        metaGenreInput.disabled = not metaGenreInput.disabled # Enable or disable the genre input field
+        metaYearInput.disabled = not metaYearInput.disabled # Enable or disable the year input field
         
         page.update()
         
@@ -187,19 +202,27 @@ def downloadSettings(page: ft.Page):
     # CUSTOM METADATA
     customMetadata = ft.Checkbox(label="Custom Metadata", width=20, on_change=metadataButtonClick) # Toggle to enable or disable metadata
     metaAlbumInput = ft.TextField(label="Album Name", width=200, disabled=True) # Create a text field widget for the album name
-
+    metaTrackNumberInput = ft.Checkbox(label="Track Numbers", width=200, disabled=True) # Create a checkbox widget for the track number
+    metaArtistInput = ft.TextField(label="Artist Name", width=200, disabled=True) # Create a text field widget for the artist name
+    metaComposerInput = ft.TextField(label="Composer Name", width=200, disabled=True) # Create a text field widget for the composer name
+    metaLyricistsInput = ft.TextField(label="Lyricists Name", width=200, disabled=True) # Create a text field widget for the lyricists name
+    metaGenreInput = ft.TextField(label="Genre", width=200, disabled=True) # Create a text field widget for the genre
+    metaYearInput = ft.TextField(label="Year", width=200, disabled=True) # Create a text field widget for the year
 
     # Uses a nested columns in a row to align the settings
     formatResolutionRow = ft.Row(
         [ft.Column([videoAudioSelect, resolutionSelect]),
-         ft.Column([customMetadata, metaAlbumInput])], 
+         ft.Column([customMetadata, metaAlbumInput]), 
+         ft.Column([metaTrackNumberInput, metaArtistInput]),
+         ft.Column([metaComposerInput, metaLyricistsInput]),
+         ft.Column([metaGenreInput, metaYearInput])], 
          alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER) # Adjust alignment properties as needed
     
     
     # CREATE BUTTONS
     # Create a Row widget to contain the buttons horizontally
     buttonRow = ft.Row([
-        ft.ElevatedButton(text="Go to Main Page", on_click=backButtonClick),
+        ft.ElevatedButton(text="Back to Main Menu", on_click=backButtonClick),
         (downloadButton := ft.ElevatedButton(text="Download", on_click=downloadButtonClick, disabled=True)) 
     ], alignment='center')
 
@@ -251,12 +274,14 @@ def download(page: ft.Page):
         
     fileName = "" # Variable to store the file name
     audioFile = "" # Variable to store the audio file
+    downloadIndex = 0 # Variable to store the download index
     
     def my_hook(d):
         nonlocal cancelDownload 
         nonlocal fileName
         nonlocal audioFile
         nonlocal filesDownloaded
+        nonlocal downloadIndex
         
         if cancelDownload == True: # If the cancel button was pressed
             raise Exception("Download Cancelled") # Raise an exception to stop the download
@@ -289,6 +314,7 @@ def download(page: ft.Page):
             elif fileExtention == "m4a":
                 completedText.value = f"Downloaded - {fileName}" # Display the completion message
                 page.update() # Update the page
+                downloadIndex += 1 # Increment the download index
                 
                 if altMode == True:           
                     downloadingText.value = "Merging Audio and Video\nPlease wait..." # Change the download status to merging audio and video
@@ -309,11 +335,19 @@ def download(page: ft.Page):
                     temp = f"{pathLists[0]}{fileName}.{fileExtention}"
                     downloadedFile = MP4(temp) # Open the downloaded file
                     downloadedFile['\xa9alb'] = downloadConfigData["metaAlbum"] # Set the album metadata
+                    downloadedFile['\xa9ART'] = downloadConfigData["metaArtist"] # Set the artist metadata
+                    downloadedFile['\xa9wrt'] = downloadConfigData["metaComposer"] # Set the composer metadata
+                    downloadedFile['\xa9lyr'] = downloadConfigData["metaLyricists"] # Set the lyricists metadata
+                    downloadedFile['\xa9gen'] = downloadConfigData["metaGenre"] # Set the genre metadata
+                    downloadedFile['\xa9day'] = downloadConfigData["metaYear"] # Set the year metadata
+                    
+                    if downloadConfigData["metaTrackNumber"] == True: # If the track number metadata is enabled
+                        downloadedFile['trkn'] = [(int(downloadIndex), 0)] # Set the track number metadata
                     downloadedFile.save() # Save the metadata
                           
         page.update() # Update the page
-        
-    page.controls.clear()  # Clear the previous controlseeeee
+
+    page.controls.clear()  # Clear the previous controls  
     
     
     downloadingText = ft.Text((value := "Starting Download..."), size=20) # Create a text widget to display the download status

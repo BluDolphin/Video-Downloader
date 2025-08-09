@@ -3,6 +3,6 @@ flet-desktop==0.25.2
 bs4==0.0.2
 pillow==10.4.0
 moviepy==1.0.3
-yt_dlp==2024.12.13
+yt_dlp==25.7.21
 mutagen==1.47.0
 requests==2.32.4
