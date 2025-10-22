@@ -68,6 +68,11 @@ def mainPage(page: ft.Page):
         global videoURL, thumbnailURL, videoTitle, thumbnailPath
         videoURL = URLInput.value # gets value from text box and assigns to videoURL
         
+        # Fix for no http/https in URL
+        if not videoURL.startswith("http://") and not videoURL.startswith("https://"):
+            # Add https:// to the start of the URL
+            videoURL = f"https://{videoURL}"
+        
         # Check if the URL is valid and get the thumbnail
         try:
             response = requests.get(videoURL) # Check if the URL is valid
@@ -200,7 +205,7 @@ def downloadSettings(page: ft.Page):
         disabled=True) # Create the dropdown widget
     
     # CUSTOM METADATA
-    customMetadata = ft.Checkbox(label="Custom Metadata", width=20, on_change=metadataButtonClick) # Toggle to enable or disable metadata
+    customMetadata = ft.Checkbox(label="Custom Metadata", width=200, on_change=metadataButtonClick) # Toggle to enable or disable metadata
     metaAlbumInput = ft.TextField(label="Album Name", width=200, disabled=True) # Create a text field widget for the album name
     metaTrackNumberInput = ft.Checkbox(label="Track Numbers", width=200, disabled=True) # Create a checkbox widget for the track number
     metaArtistInput = ft.TextField(label="Artist Name", width=200, disabled=True) # Create a text field widget for the artist name
